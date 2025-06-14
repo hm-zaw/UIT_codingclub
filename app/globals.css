@@ -24,3 +24,33 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.text-gradient {
+    background: -webkit-linear-gradient(#4338ca, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-dark-bg-1 {
+    background: -webkit-linear-gradient(#a78bfa, #c7d2fe); /* Violet 400 to Indigo 200 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-dark-bg-2 {
+    background: -webkit-linear-gradient(#38bdf8, #22d3ee); /* Sky 400 to Cyan 400 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-dark-bg-3 {
+    background: -webkit-linear-gradient(#2F8F8F, #206E6E); /* Lighter teal to darker teal */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-dark-bg-4 {
+    background: -webkit-linear-gradient(#76D1CD, #5DA7A7); /* Lighter teal to darker teal */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
