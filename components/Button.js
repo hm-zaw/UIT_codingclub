@@ -14,7 +14,7 @@ export default function Button(props) {
                 (full ? 'w-full ' : '') +
                 (dark // Dark button styling
                     ? 'bg-[#5DA7A7] text-white border-[#2B7C7C] hover:bg-[#76D1CD] hover:border-[#5DA7A7] ' 
-                    : 'bg-white text-[#4f9a9a] border-[#2B7C7C] hover:bg-[#76D1CD] hover:text-white hover:border-[#76D1CD] ') 
+                    : 'bg-white text-[#5cafaf] border-[#2B7C7C] hover:bg-[#76D1CD] hover:text-white hover:border-[#76D1CD] ') 
             }>
             <p className={`${montserrat.className} whitespace-nowrap text-xl font-bold`}>
                 { text }

@@ -9,7 +9,7 @@ export default function Hero() {
   return (
     <div className={`px-5 py-10 sm:py-8 md:py-10 w-full mx-auto max-w-[1000px] flex flex-col gap-6 sm:gap-8`}>
       <h1 className={`${montserrat.className} text-5xl text-center sm:text-6xl md:text-7xl`}> 
-        <span className='text-gradient-dark-bg-4'> Code, Learn, </span> and <span className='text-gradient-dark-bg-4'> Innovate </span> with UIT Coding Club
+        <span className='text-gradient-dark-bg-3'> Code, Learn, </span> and <span className='text-gradient-dark-bg-3'> Innovate </span> with UIT Coding Club
       </h1>
       <p className='text-sm text-center sm:text-lg md:text-xl'>
         Join our community at the <span className='font-semibold'>UIT Coding Club</span> to learn, code, and innovate together!
