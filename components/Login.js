@@ -8,12 +8,18 @@ import { useAuth } from '@/context/AuthContext'
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['400'] })
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ['400'] })
 
-export default function Login() {
+export default function Login(props) {
+
+  const { state } = props;
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isRegister, setIsRegister] = useState(false)
   const [authenticating, setAuthenticating] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')  
+
+  useEffect(() => {
+    setIsRegister(state);
+  }, [state]); 
 
   const { signup, login } = useAuth()
 

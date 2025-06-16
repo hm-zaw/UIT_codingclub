@@ -15,10 +15,10 @@ export default function Hero() {
         Join our community at the <span className='font-semibold'>UIT Coding Club</span> to learn, code, and innovate together!
       </p>
       <div className='grid grid-cols-2 gap-4 mx-auto mt-3 w-fit'>
-        <Link href={'/dashboard'}>
+        <Link href={'/Signup'}>
           <Button text="Sign Up"/>
         </Link>
-        <Link href={'/dashboard'}>
+        <Link href={'/Login'}>
           <Button text="Login" dark/>
         </Link>
       </div>

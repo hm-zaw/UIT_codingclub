@@ -45,6 +45,14 @@ export function AuthProvider({ children }) {
             await setDoc(doc(db, 'users', user.uid), {
                 email: user.email,
                 createdAt: new Date(),
+                name: '',
+                studentId: '',
+                enrolledYear: 2000,
+                graduationYear: 2032,
+                major: '',
+                enrolledEvent: '',
+                status: '',
+                role: '' 
             }, { merge: true });
 
             return {
@@ -88,8 +96,23 @@ export function AuthProvider({ children }) {
                 };
             }
 
-            console.log("Login successful!");
-            return { success: true };
+            const docRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+
+                if (!userData.role || userData.role.trim() === "") {
+                    // Redirect to the desired page if role is empty
+                    window.location.href = "/setup"; // Replace with your desired page
+                } else {
+                    // Role is set; redirect to dashboard
+                    window.location.href = "/dashboard";
+                    return { success: true };
+                }
+            } else {
+                throw new Error("User data not found in Firestore.");
+            }
         } catch (error) {
             let errorMessage = "An unknown error occurred. Please try again.";
             switch (error.code) {
@@ -156,7 +179,6 @@ export function AuthProvider({ children }) {
 
         return () => unsubscribe();
     }, []);
-
 
     const value = {
         currentUser,
