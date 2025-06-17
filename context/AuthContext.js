@@ -47,8 +47,6 @@ export function AuthProvider({ children }) {
                 createdAt: new Date(),
                 name: '',
                 studentId: '',
-                enrolledYear: 2000,
-                graduationYear: 2032,
                 major: '',
                 enrolledEvent: '',
                 status: '',
