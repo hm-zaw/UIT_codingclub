@@ -21,7 +21,7 @@ export default function Dashboard() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (!user) {
-          router.push('/login');
+          router.push('/Login');
           return;
         }
 

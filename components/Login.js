@@ -38,6 +38,9 @@ export default function Login(props) {
       if (isRegister) {
         console.log("Signing up a new user")
         result = await signup(email, password)
+        if (result.success) {
+          setIsRegister(false) // Switch to login view after successful registration
+        }
       } else {
         console.log('Logging in existing user')
         result = await login(email, password)

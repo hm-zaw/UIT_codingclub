@@ -32,7 +32,7 @@ export default function Dashboard() {
     // Handle redirect after loading is complete
     useEffect(() => {
         if (!showLoading && !currentUser) {
-        router.push('/Login'); // Use router.push for client-side navigation
+        router.push('/Login'); 
         }
     }, [showLoading, currentUser, router]);
 

@@ -25,7 +25,7 @@ export default function AdminDashboard() {
         
         if (!user) {
           setDebug(prev => prev + '\nNo user found, redirecting to login');
-          router.push('/login');
+          router.push('/Login');
           return;
         }
 
