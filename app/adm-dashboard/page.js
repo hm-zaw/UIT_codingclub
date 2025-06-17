@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   const { currentUser, userDataObj, loading } = useAuth();
   const [data, setData] = useState(null);
   const [showLoading, setShowLoading] = useState(true);
+  const [debug, setDebug] = useState(''); // Add debug state
   const router = useRouter();
   const auth = getAuth();
   const db = getFirestore();
@@ -20,40 +21,50 @@ export default function AdminDashboard() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
+        setDebug(prev => prev + '\nChecking auth state...');
+        
         if (!user) {
+          setDebug(prev => prev + '\nNo user found, redirecting to login');
           router.push('/login');
           return;
         }
+
+        setDebug(prev => prev + `\nUser found: ${user.email}`);
 
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
+          setDebug(prev => prev + '\nNo user data found, redirecting to setup');
           router.push('/setup');
           return;
         }
 
         const userData = userSnap.data();
+        setDebug(prev => prev + `\nUser role: ${userData.role}`);
 
         // If role is not admin (teacher or mentor), redirect to appropriate dashboard
         if (userData.role === 'student') {
+          setDebug(prev => prev + '\nStudent role detected, redirecting to user dashboard');
           router.push('/user-dashboard');
           return;
-        } else if (!['teacher', 'mentor'].includes(userData.role)) {
+        } else if (!['teacher', 'mentor', 'admin'].includes(userData.role)) {
+          setDebug(prev => prev + '\nInvalid role, redirecting to setup');
           router.push('/setup');
           return;
         }
 
         // If we get here, user is authorized
+        setDebug(prev => prev + '\nUser authorized, showing dashboard');
         setShowLoading(false);
 
       } catch (error) {
         console.error('Error checking admin access:', error);
+        setDebug(prev => prev + `\nError: ${error.message}`);
         router.push('/user-dashboard');
       }
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
@@ -71,7 +82,14 @@ export default function AdminDashboard() {
   }, [showLoading, currentUser, router]);
 
   if (showLoading) {
-    return <Loading />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loading />
+        <pre className="mt-4 text-sm text-gray-600">
+          {debug}
+        </pre>
+      </div>
+    );
   }
 
   console.log('Current user in dashboard:', currentUser);

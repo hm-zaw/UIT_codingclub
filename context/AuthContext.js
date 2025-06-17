@@ -103,8 +103,9 @@ export function AuthProvider({ children }) {
                 const userData = docSnap.data();
 
                 if (!userData.role || userData.role.trim() === "") {
+                    console.warn("Role is empty or missing. Redirecting to setup.");
                     // Redirect to the desired page if role is empty
-                    window.location.href = "/setup"; // Replace with your desired page
+                    window.location.href = "/setup";
                 } else {
                     // Role is set; redirect to dashboard
                     window.location.href = "/dashboard";
