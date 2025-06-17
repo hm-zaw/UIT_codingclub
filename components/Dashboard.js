@@ -1,9 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react'
-import Adm_Dashboard from './Adm-Dashboard'
-import User_Dashboard from './User-Dashboard'
 import Loading from './Loading';
-import Login from './Login';
 import { Montserrat } from 'next/font/google';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
