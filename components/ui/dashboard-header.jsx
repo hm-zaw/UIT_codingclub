@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useState, useEffect } from 'react';
 
 export function DashboardHeader() {
@@ -54,6 +55,7 @@ export function DashboardHeader() {
           </p>
         </div>
         <div className="ml-auto flex items-center space-x-4">
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">

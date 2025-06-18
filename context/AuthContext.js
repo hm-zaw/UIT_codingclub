@@ -186,7 +186,7 @@ export function AuthProvider({ children }) {
         signup,
         logout,
         login,
-        loading // This `loading` is for global auth state and data fetching
+        loading 
     }
 
     return (

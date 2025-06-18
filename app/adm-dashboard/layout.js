@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function AdminDashboardLayout({ children }) {
   return (
-    <div className="admin-dashboard-layout w-full">
+    <div className="admin-dashboard-layout w-full ">
       <AuthProvider>
         {children}
       </AuthProvider>

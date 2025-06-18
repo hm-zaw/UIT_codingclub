@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import CardContainer from '@/components/card/CardContainer';
 
 export default function Page() {
   const [studentId, setStudentId] = useState('');
@@ -16,6 +17,7 @@ export default function Page() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState(1);
   
   const router = useRouter();
   const auth = getAuth();
@@ -105,23 +107,32 @@ export default function Page() {
     setMajor('');
   }, [enrolledYear]);
 
+  // Create an object with the form data
+  const userData = {
+    name,
+    studentId,
+    yearLevel: enrolledYear,
+    semester: graduationYear,
+    major
+  };
+
   return (
     <> 
         {showVerification && (
-          <div class="bg-teal-500/20 max-w-[950px] rounded-lg px-6 py-5 mx-12 flex items-center">
-              <div class="rounded-full bg-white text-mediumGreen flex items-center justify-center w-7 h-7">
-                  <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" class="w-5 h-5 text-green-700">
+          <div className="bg-teal-500/20 max-w-[950px] rounded-lg px-6 py-5 mx-12 flex items-center">
+              <div className="rounded-full bg-white text-mediumGreen flex items-center justify-center w-7 h-7">
+                  <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" className="w-5 h-5 text-green-700">
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
               </div>
-              <p class="ml-3 text-white/75 text-lg">Your email is now verified!</p>
+              <p className="ml-3 text-white/75 text-lg">Your email is now verified!</p>
           </div>
         )}
-        <div className="flex min-h-screen text-white">
+        <div className="flex min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-white">
             
-            {/* Left Form Section */}
-            <div className="flex-1 flex flex-col px-16 py-12">
-                <div className="max-w-[750px] w-full space-y-6 mb-8">
+            {/* Left Form Section - Adjusted width */}
+            <div className="flex-1 flex flex-col px-16 py-12 max-w-[800px]">
+                <div className="w-full space-y-6 mb-8">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">Nice to meet you! Let's get acquainted.</h1>
                     
                     {error && (
@@ -135,7 +146,7 @@ export default function Page() {
                             <label htmlFor="name" className="block text-sm font-medium mb-2">Name <span className="text-red-500">*</span></label>
                             <input type="text" id="name" required
                                 placeholder="First and Last Name"
-                                className="w-full px-5 py-3 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-5 py-3 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                             />
@@ -154,7 +165,7 @@ export default function Page() {
                                     const numericValue = e.target.value.replace(/[^0-9]/g, '');
                                     setStudentId(numericValue);
                                 }}
-                                className="w-full px-5 py-3 pl-16 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-5 py-3 pl-16 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Enter your ID number"
                                 maxLength={4}
                             />
@@ -170,7 +181,7 @@ export default function Page() {
                                 id="yearLevel"
                                 value={enrolledYear}
                                 onChange={(e) => setEnrolledYear(e.target.value)}
-                                className="w-full px-5 py-3 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-5 py-3 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">Select year</option>
                                 <option value="1">First Year</option>
@@ -188,7 +199,7 @@ export default function Page() {
                                 id="semester"
                                 value={graduationYear}
                                 onChange={(e) => setGraduationYear(e.target.value)}
-                                className="w-full px-5 py-3 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-5 py-3 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">Select semester</option>
                                 <option value="1">First Semester</option>
@@ -202,7 +213,7 @@ export default function Page() {
                             id="major" 
                             value={major} 
                             onChange={(e) => setMajor(e.target.value)}
-                            className="w-full px-5 py-3 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-5 py-3 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             disabled={!enrolledYear || parseInt(enrolledYear) <= 2}
                         >
                             <option value="">
@@ -260,7 +271,7 @@ export default function Page() {
                             id="attendanceStatus"
                             value={attendanceStatus}
                             onChange={(e) => setAttendanceStatus(e.target.value)}
-                            className="w-full px-5 py-3 rounded-md bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-5 py-3 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Select status</option>
                             <option value="attending">Attending</option>
@@ -283,14 +294,9 @@ export default function Page() {
                 </div>
             </div>
 
-            {/* Right Preview Section */}
-            <div className="flex-1 p-8 rounded-l-lg flex flex-col justify-center items-center">
-                <div className="w-full max-w-[350px] bg-gray-900 p-6 rounded-xl space-y-4">
-                <p className="text-sm text-gray-400">Student ID</p>
-                <h2 className="text-lg font-bold">{studentId || 'TNT-8888'}</h2>
-                <p className="text-sm text-gray-400">Major</p>
-                <h2 className="text-lg font-bold">{major || 'N/A'}</h2>
-                </div>
+            {/* Right Section - Pass userData to CardContainer */}
+            <div className="flex-1 flex items-center justify-center">
+                <CardContainer userData={userData} />
             </div>
         </div>
     </>

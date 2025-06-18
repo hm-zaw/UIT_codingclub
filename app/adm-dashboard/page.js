@@ -158,7 +158,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background dark:bg-background">
       {/* Sidebar */}
       <div className="hidden lg:flex w-64 flex-col fixed inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 border-r bg-background dark:bg-background">
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
         <main className="flex-1 p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
-              <Card key={stat.title} className="bg-background dark:bg-background">
+              <Card key={stat.title}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-foreground dark:text-foreground">
                     {stat.title}
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
-            <Card className="col-span-4 bg-background dark:bg-background">
+            <Card className="col-span-4">
               <CardHeader>
                 <CardTitle className="text-foreground dark:text-foreground">Recent Activity</CardTitle>
               </CardHeader>
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="col-span-3 bg-background dark:bg-background">
+            <Card className="col-span-3">
               <CardHeader>
                 <CardTitle className="text-foreground dark:text-foreground">Quick Actions</CardTitle>
               </CardHeader>
@@ -229,7 +229,7 @@ export default function AdminDashboard() {
           <div className="mt-8">
             <h2 className="text-lg font-semibold mb-4">Student Details</h2>
             <div className="overflow-x-auto">
-                <table className="min-w-full bg-background border border-gray-200">
+                <table className="min-w-full bg-background dark:bg-background border border-gray-200 dark:border-gray-800">
                 <thead>
                     <tr>
                     <th className="px-4 py-2 border-b text-center">#</th>
