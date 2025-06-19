@@ -7,9 +7,16 @@ import Image from "next/image";
 
 export default function GlobalLayout({ children }) {
   const pathname = usePathname();
-  const isAdminDashboard = pathname?.startsWith('/adm-dashboard');
+  const isSpecialPage = [
+    '/adm-dashboard',
+    '/user-dashboard',
+    '/contact',
+    '/resources',
+    '/event',
+    '/about',
+  ].some((route) => pathname?.startsWith(route));
 
-  const header = !isAdminDashboard && (
+  const header = !isSpecialPage && (
     <header className="flex items-center justify-between gap-4 p-4 sm:p-8">
       <div className="flex items-center gap-3">
         <Image src={'/uit_logo.png'} width={70} height={70} alt={'uit_logo'} />
@@ -21,7 +28,7 @@ export default function GlobalLayout({ children }) {
     </header>
   );
 
-  const footer = !isAdminDashboard && (
+  const footer = !isSpecialPage && (
     <footer className="p-4 sm:p-8">
       <p className={`text-center mx-auto text-gray-600 dark:text-gray-400`}>Created by HMZ</p>
     </footer>
