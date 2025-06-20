@@ -1,44 +1,69 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Logout from "@/components/Logout";
+import Navbar from "@/components/user_dash/Navbar";
+import Footer from "@/components/user_dash/Footer";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
+import { Montserrat } from 'next/font/google'
+const montserrat = Montserrat({ subsets: ["latin"], weight: ['500']})
 
 export default function GlobalLayout({ children }) {
   const pathname = usePathname();
-  const isSpecialPage = [
+  const specialRoutes = [
     '/adm-dashboard',
     '/user-dashboard',
     '/contact',
     '/resources',
     '/event',
     '/about',
-  ].some((route) => pathname?.startsWith(route));
+    '/'
+  ];
+  const isSpecialPage = specialRoutes.some((route) => {
+    if (route === '/') {
+      return pathname === '/';
+    }
+    return pathname?.startsWith(route);
+  });
 
-  const header = !isSpecialPage && (
-    <header className="flex items-center justify-between gap-4 p-4 sm:p-8">
-      <div className="flex items-center gap-3">
-        <Image src={'/uit_logo.png'} width={70} height={70} alt={'uit_logo'} />
-        <h1 className={`text-lg sm:text-xl md:text-2xl text-gradient-dark-bg-3`}>UIT Coding Club</h1>
-      </div>
-      <div className="flex items-center gap-4">
-        <ThemeToggle />
-      </div>
-    </header>
-  );
+  if (isSpecialPage) {
+    // Special layout
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen pt-20">
+          {children}
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
-  const footer = !isSpecialPage && (
-    <footer className="p-4 sm:p-8">
-      <p className={`text-center mx-auto text-gray-600 dark:text-gray-400`}>Created by HMZ</p>
-    </footer>
-  );
-
+  // Default layout
   return (
     <>
-      {header}
+      <header className={`${montserrat.className} flex items-center justify-between gap-4 p-4 sm:p-8`}>
+        <div className="flex items-center gap-3">
+          <div>
+            <Image src={'/uit_logo.png'} width={70} height={70} alt={'uit_logo'} />
+          </div>
+          <div>
+            <h1 className="mt-1 text-lg my-auto sm:text-xl md:text-2xl text-gradient-dark-bg-3 leading-none">
+              UIT Coding Club
+            </h1>
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+        </div>
+      </header>
+
       {children}
-      {footer}
+      <footer className="p-4 sm:p-8">
+        <p className={`text-center mx-auto text-gray-600 dark:text-gray-400`}>Created by HAK Dynamics</p>
+      </footer>
     </>
   );
 } 

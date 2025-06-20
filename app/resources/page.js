@@ -92,16 +92,16 @@ export default function Resources() {
         </section>
   
         {/* Learning Resources Section */}
-        <section className="section bg-white">
+        <section className="section bg-white mx-8">
           <div className="container">
-            <h2 className="text-center mb-16">Learning Resources</h2>
-            <div className="grid grid-cols-3 gap-8">
+            <h2 className="text-center mt-24 mb-16">Learning Resources</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {learningResources.map((category) => (
                 <div key={category.category} className="card">
                   <h3 className="mb-6">{category.category}</h3>
                   <div className="space-y-6">
                     {category.resources.map((resource) => (
-                      <div key={resource.title} className="border-b border-gray-100 pb-4 last:border-0">
+                      <div key={resource.title} className="border-b border-gray-200 pb-4 last:border-0">
                         <h4 className="mb-2">{resource.title}</h4>
                         <p className="text-gray-600 mb-2">{resource.description}</p>
                         <div className="flex justify-between items-center">
@@ -110,9 +110,9 @@ export default function Resources() {
                             href={resource.link} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-primary hover:text-primary-dark"
+                            className="text-primary hover:text-primary-dark group inline-flex items-center"
                           >
-                            Visit →
+                            Visit <span className="ml-1 text-primary transition-transform duration-200 group-hover:translate-x-2">→</span>
                           </a>
                         </div>
                       </div>
@@ -125,10 +125,10 @@ export default function Resources() {
         </section>
   
         {/* Tools Section */}
-        <section className="section bg-gray-50">
+        <section className="section bg-gray-50 rounded-lg mx-8 my-20">
           <div className="container">
-            <h2 className="text-center mb-16">Essential Tools</h2>
-            <div className="grid grid-cols-3 gap-8">
+            <h2 className="text-center mt-20 mb-16">Essential Tools</h2>
+            <div className="mb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {tools.map((tool) => (
                 <div key={tool.name} className="card">
                   <h3 className="mb-4">{tool.name}</h3>

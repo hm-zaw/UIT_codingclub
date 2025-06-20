@@ -277,8 +277,9 @@ export default function About() {
                   </div>
                   <h3 className="text-xl font-bold text-center mb-1">Htet Paing Linn</h3>
                   <p className="text-primary text-center mb-1 text-base">Vice President</p>
-                  <p className="text-gray-600 text-center text-sm">Head of Web & Software Department</p>
-                  <p className="text-gray-600 text-center text-sm">Leads club vision, events, external collaborations</p>
+                  <p className="text-gray-600 text-center text-sm">Leads club vision, events, and external collaborations</p>
+                  <p className="text-gray-600 text-center text-sm">Drove the development of the club's website from scratch</p>
+
                 </div>
               </div>
             </div>
@@ -375,8 +376,8 @@ export default function About() {
                   </div>
                   <h3 className="text-xl font-bold text-center mb-1">Htet Myet Zaw</h3>
                   <p className="text-primary text-center mb-1 text-base">General Secretary <br/> (Web)</p>
-                  <p className="text-gray-600 text-center text-sm">Web Development Second-in-Command</p>
-                  <p className="text-gray-600 text-center text-sm">Code Collaboration & Task Management Lead</p>
+                  <p className="text-gray-600 text-center text-sm">Full-Stack Development Lead</p>
+                  <p className="text-gray-600 text-center text-sm">Led the club's website development from scretch to deployment.</p>
                 </div>
               </div>
 
@@ -397,7 +398,7 @@ export default function About() {
                   </div>
                   <h3 className="text-xl font-bold text-center mb-1">Aung Kaung Myat</h3>
                   <p className="text-primary text-center mb-1 text-base">Deputy General Secretary (Web)</p>
-                  <p className="text-gray-600 text-center text-sm">Frontend/UI Lead Co-builder of the club's website</p>
+                  <p className="text-gray-600 text-center text-sm">Frontend/UI Lead, Builder of the club's website</p>
                   <p className="text-gray-600 text-center text-sm">Supports full-stack development and project deployment</p>
                 </div>
               </div>
@@ -473,14 +474,14 @@ export default function About() {
       </section>
 
       {/* Join Section */}
-      <section className="section bg-gray-50">
+      <section className="section bg-gray-50 my-14">
         <div className="container text-center">
-          <h2 className="mb-6">Join Our Community</h2>
+          <h2 className="mt-10 mb-6">Join Our Community</h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Whether you're a beginner or an experienced developer, there's a place for you
             in our community. Join us to learn, grow, and make lasting connections.
           </p>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary mb-10">
             Become a Member
           </button>
         </div>

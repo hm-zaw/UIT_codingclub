@@ -7,12 +7,12 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ['500']})
 
 export default function Hero() {
   return (
-    <div className={`px-5 py-10 sm:py-8 md:py-10 w-full mx-auto max-w-[1000px] flex flex-col gap-6 sm:gap-8`}>
+    <div className={`${montserrat.className} px-5 py-10 sm:py-8 md:py-10 w-full mx-auto max-w-[1000px] flex flex-col gap-6 sm:gap-8`}>
       <h1 className={`${montserrat.className} text-5xl text-center sm:text-6xl md:text-7xl`}> 
-        <span className='text-gradient-dark-bg-3'> Code, Learn, </span> and <span className='text-gradient-dark-bg-3'> Innovate </span> with UIT Coding Club
+      <span className="text-5xl md:text-7xl bg-gradient-to-r from-[#387d8a] to-[#2c5f6a] bg-clip-text text-transparent"> Code, Learn, </span> <span className="text-5xl md:text-7xl "> and </span> <span className="text-5xl md:text-7xl bg-gradient-to-r from-[#387d8a] to-[#2c5f6a] bg-clip-text text-transparent"> Innovate </span> <span className='text-5xl md:text-7xl '> with UIT Coding Club </span>
       </h1>
-      <p className='text-sm text-center sm:text-lg md:text-xl'>
-        Join our community at the <span className='font-semibold'>UIT Coding Club</span> to learn, code, and innovate together!
+      <p className='text-md text-center sm:text-xl md:text-2xl'>
+        Join our community at the <span className='font-semibold text-md sm:text-xl md:text-2xl'>UIT Coding Club</span> to learn, code, and innovate together!
       </p>
       <div className='grid grid-cols-2 gap-4 mx-auto mt-3 w-fit'>
         <Link href={'/Signup'}>

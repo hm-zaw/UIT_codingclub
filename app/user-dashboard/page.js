@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { FaGraduationCap, FaCode, FaUsers } from 'react-icons/fa';
+import Hero from '@/components/Hero';
 
 const monstserrat = Montserrat({ subsets: ['latin'], weight: ['500'] });
 
@@ -180,7 +181,7 @@ export default function Dashboard() {
               Empowering students through code, collaboration, and innovation
             </p>
             <button className="btn btn-primary">
-              Join Us
+              Check Events
             </button>
           </div>
         </div>

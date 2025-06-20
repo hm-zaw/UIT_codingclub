@@ -97,7 +97,7 @@ export default function Events() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mx-auto">
             {/* Calendar Column */}
             <div className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
               <div className="flex justify-between items-center mb-6">
@@ -124,11 +124,18 @@ export default function Events() {
                 {calendarDays.map((day, index) => (
                   <div
                     key={index}
-                    className={`p-2 relative rounded-full cursor-pointer 
-                      ${day === selectedDate.getDate() && currentMonth === selectedDate.getMonth() && currentYear === selectedDate.getFullYear() ? 'bg-[#EF4444] text-white' : ''}
+                    className={`
+                      relative cursor-pointer rounded-full
+                      ${day === selectedDate.getDate() && currentMonth === selectedDate.getMonth() && currentYear === selectedDate.getFullYear()
+                        ? 'bg-[#EF4444] text-white'
+                        : ''}
                       ${day ? 'hover:bg-gray-100' : 'text-gray-300'}
+                      p-1 sm:p-2 md:p-3
+                      min-w-[2rem] min-h-[2rem] sm:min-w-[2.5rem] sm:min-h-[2.5rem]
+                      flex items-center justify-center mx-auto
                     `}
                     onClick={() => day && setSelectedDate(new Date(currentYear, currentMonth, day))}
+                    style={{ aspectRatio: '1 / 1' }}
                   >
                     {day}
                     {day && eventDates.includes(new Date(currentYear, currentMonth, day).toDateString()) && (

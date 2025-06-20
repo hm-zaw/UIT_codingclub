@@ -64,7 +64,7 @@ export default function Login(props) {
 
   return (
     <div className='flex flex-col flex-1 justify-center items-center gap-4'>
-      <h3 className={`${fugaz.className} px-20 sm:px-28 md:px-32 font-fugaz text-5xl sm:text-6xl md:text-7xl text-center`}>
+      <h3 className={`${fugaz.className} px-20 sm:px-28 md:px-32 font-fugaz text-5xl sm:text-6xl md:text-7xl text-center text-gray-900 dark:text-white`}>
         {isRegister ? 'Register' : 'Login'}
       </h3>
 
