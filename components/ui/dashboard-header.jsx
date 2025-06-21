@@ -47,7 +47,7 @@ export function DashboardHeader() {
   };
 
   return (
-    <div className="border-b">
+    <div className="border-b bg-white dark:bg-slate-800/70">
       <div className="flex h-16 items-center px-4">
         <div className="flex-1">
           <p className="text-sm text-muted-foreground">

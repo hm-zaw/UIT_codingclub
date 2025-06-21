@@ -9,7 +9,7 @@ import { DashboardNav } from '@/components/ui/dashboard-nav';
 import { DashboardHeader } from '@/components/ui/dashboard-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, Activity } from 'lucide-react';
+import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, Activity, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google'
@@ -22,7 +22,10 @@ export default function AdminDashboard() {
   const [showLoading, setShowLoading] = useState(true);
   const [debug, setDebug] = useState('');
   const [userCount, setUserCount] = useState(0);
+  const [mentorCount, setMentorCount] = useState(0);
   const [studentList, setStudentList] = useState([]);
+  const [userGrowth, setUserGrowth] = useState(0);
+  const [mentorGrowth, setMentorGrowth] = useState(0);
   const router = useRouter();
   const auth = getAuth();
   const db = getFirestore();
@@ -35,8 +38,28 @@ export default function AdminDashboard() {
       console.log('Student user count:', querySnapshot.size);
       querySnapshot.forEach(doc => console.log(doc.id, doc.data()));
       setUserCount(querySnapshot.size);
+      
+      // Calculate growth (for demo purposes, you can replace with actual historical data)
+      const growth = Math.floor(Math.random() * 20) + 5; // Random growth between 5-25%
+      setUserGrowth(growth);
     } catch (error) {
       console.error('Error fetching user count:', error);
+    }
+  };
+
+  const fetchMentorCount = async () => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('role', '==', 'mentor'));
+      const querySnapshot = await getDocs(q);
+      console.log('Mentor user count:', querySnapshot.size);
+      setMentorCount(querySnapshot.size);
+      
+      // Calculate growth (for demo purposes, you can replace with actual historical data)
+      const growth = Math.floor(Math.random() * 15) + 3; // Random growth between 3-18%
+      setMentorGrowth(growth);
+    } catch (error) {
+      console.error('Error fetching mentor count:', error);
     }
   };
 
@@ -118,6 +141,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!showLoading) {
       fetchUserCount();
+      fetchMentorCount();
       fetchStudentList();
     }
   }, [showLoading]);
@@ -140,7 +164,17 @@ export default function AdminDashboard() {
       icon: Users,
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-500/10 to-cyan-500/10",
-      borderColor: "border-blue-500/20"
+      borderColor: "border-blue-500/20",
+      growth: userGrowth
+    },
+    {
+      title: "Total Mentors",
+      value: mentorCount.toString(),
+      icon: GraduationCap,
+      gradient: "from-emerald-500 to-teal-500",
+      bgGradient: "from-emerald-500/10 to-teal-500/10",
+      borderColor: "border-emerald-500/20",
+      growth: mentorGrowth
     },
     {
       title: "Active Courses",
@@ -148,7 +182,8 @@ export default function AdminDashboard() {
       icon: BookOpen,
       gradient: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-500/10 to-pink-500/10",
-      borderColor: "border-purple-500/20"
+      borderColor: "border-purple-500/20",
+      growth: 8
     },
     {
       title: "Upcoming Events",
@@ -156,16 +191,9 @@ export default function AdminDashboard() {
       icon: Calendar,
       gradient: "from-orange-500 to-red-500",
       bgGradient: "from-orange-500/10 to-red-500/10",
-      borderColor: "border-orange-500/20"
+      borderColor: "border-orange-500/20",
+      growth: 15
     },
-    {
-      title: "New Messages",
-      value: "18",
-      icon: MessageSquare,
-      gradient: "from-emerald-500 to-teal-500",
-      bgGradient: "from-emerald-500/10 to-teal-500/10",
-      borderColor: "border-emerald-500/20"
-    }
   ];
 
   return (
@@ -211,7 +239,9 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                    <span className="text-xs text-green-600 dark:text-green-400">+12% from last month</span>
+                    <span className="text-xs text-green-600 dark:text-green-400">
+                      {stat.growth > 0 ? `+${stat.growth}%` : `${stat.growth}%`} from last month
+                    </span>
                   </div>
                 </CardContent>
               </Card>

@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   BookOpen,
+  CalendarDays,
   Calendar,
   MessageSquare,
   LogOut
@@ -34,16 +35,10 @@ const routes = [
     href: '/adm-dashboard/courses',
   },
   {
-    label: 'Schedule',
-    icon: Calendar,
+    label: 'Events',
+    icon: CalendarDays,
     color: "text-primary",
-    href: '/adm-dashboard/schedule',
-  },
-  {
-    label: 'Messages',
-    icon: MessageSquare,
-    color: "text-primary",
-    href: '/adm-dashboard/messages',
+    href: '/adm-dashboard/events',
   },
   {
     label: 'Settings',

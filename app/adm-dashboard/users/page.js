@@ -1,24 +1,34 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, deleteUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, Plus, ArrowLeft } from 'lucide-react';
+import { Users, Plus, ArrowLeft, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { Montserrat } from 'next/font/google';
+import { useAuth } from '@/context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['500']});
 
 export default function UsersPage() {
+  const { currentUser, userDataObj, loading: authLoading } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
   const [mentors, setMentors] = useState([]);
   const [studentList, setStudentList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [currentUserRole, setCurrentUserRole] = useState('');
+  const [userToRemove, setUserToRemove] = useState(null);
 
   // Form states
   const [name, setName] = useState('');
@@ -33,10 +43,33 @@ export default function UsersPage() {
   const auth = getAuth();
   const db = getFirestore();
 
+  // Auto-clear success and error messages after 30 seconds
   useEffect(() => {
-    fetchMentors();
-    fetchStudentList();
-  }, []);
+    let timeoutId;
+    if (success || error) {
+      timeoutId = setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 30000); // 30 seconds
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [success, error]);
+
+  useEffect(() => {
+    if (currentUser && userDataObj) {
+      setCurrentUserRole(userDataObj.role || '');
+      console.log('Current user role:', userDataObj.role);
+    }
+  }, [currentUser, userDataObj]);
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      fetchMentors();
+      fetchStudentList();
+    }
+  }, [authLoading, currentUser]);
 
   const fetchMentors = async () => {
     try {
@@ -74,6 +107,13 @@ export default function UsersPage() {
     setSuccess('');
     setLoading(true);
 
+    // Check if user has admin privileges
+    if (!['admin', 'teacher'].includes(currentUserRole)) {
+      setError('You do not have permission to add mentors. Only admin and teacher users can perform this action.');
+      setLoading(false);
+      return;
+    }
+
     // Form validation
     if (!name || !email || !studentId || !major || !enrolledYear || !graduationYear || !attendanceStatus) {
       setError('Please fill in all required fields');
@@ -82,8 +122,18 @@ export default function UsersPage() {
     }
 
     try {
-      // Add new mentor to Firestore
-      await addDoc(collection(db, 'users'), {
+      // Generate a temporary password
+      const tempPassword = `TNT${studentId}@${new Date().getFullYear()}`;
+      
+      // Create Firebase Authentication user account
+      const userCredential = await createUserWithEmailAndPassword(auth, email, tempPassword);
+      const newUser = userCredential.user;
+      
+      // Send password reset email so the mentor can set their own password
+      await sendPasswordResetEmail(auth, email);
+      
+      // Create Firestore document with the new user's UID
+      await setDoc(doc(db, 'users', newUser.uid), {
         name,
         email,
         studentId: `TNT-${studentId}`,
@@ -93,15 +143,27 @@ export default function UsersPage() {
         semester: graduationYear,
         attendanceStatus,
         setupCompleted: true,
-        createdAt: new Date()
+        createdAt: new Date(),
+        addedBy: currentUser.uid // Track who added this mentor
       });
 
-      setSuccess('Mentor added successfully!');
+      setSuccess(`Mentor added successfully! Temporary password: ${tempPassword}. A password reset email has been sent to ${email}.`);
       setShowAddForm(false);
       resetForm();
       fetchMentors(); // Refresh the list
     } catch (err) {
-      setError('Failed to add mentor: ' + err.message);
+      console.error('Error adding mentor:', err);
+      
+      // Handle specific Firebase Auth errors
+      if (err.code === 'auth/email-already-in-use') {
+        setError('A user with this email already exists in the system.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('The email address is not valid.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('The password is too weak.');
+      } else {
+        setError('Failed to add mentor: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -115,6 +177,84 @@ export default function UsersPage() {
     setGraduationYear('');
     setMajor('');
     setAttendanceStatus('');
+  };
+
+  const handlePromoteUser = async (userId, newRole) => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      // Check if user has admin privileges
+      if (!['admin'].includes(currentUserRole)) {
+        setError('You do not have permission to promote users. Only admin users can perform this action.');
+        setLoading(false);
+        return;
+      }
+
+      // Update user role in Firestore
+      await setDoc(doc(db, 'users', userId), {
+        role: newRole
+      }, { merge: true });
+
+      setSuccess(`User successfully promoted to ${newRole}!`);
+      
+      // Refresh the lists
+      fetchMentors();
+      fetchStudentList();
+    } catch (err) {
+      console.error('Error promoting user:', err);
+      setError('Failed to promote user: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveUser = async (userId, userEmail) => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      // Check if user has admin privileges
+      if (!['admin'].includes(currentUserRole)) {
+        setError('You do not have permission to remove users. Only admin users can perform this action.');
+        setLoading(false);
+        return;
+      }
+
+      // Get user auth data
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        setError('User not found in database.');
+        setLoading(false);
+        return;
+      }
+
+      const userData = userDoc.data();
+
+      // Delete user document from Firestore
+      await deleteDoc(doc(db, 'users', userId));
+
+      // Note: Deleting from Firebase Auth requires admin SDK on backend
+      // For now, we'll just delete from Firestore and show a message
+      setSuccess(`User ${userData.name} (${userEmail}) has been removed from the system. Note: Their authentication account may still exist and should be removed manually if needed.`);
+      
+      // Refresh the lists
+      fetchMentors();
+      fetchStudentList();
+    } catch (err) {
+      console.error('Error removing user:', err);
+      setError('Failed to remove user: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmRemoveUser = (userId, userEmail, userName) => {
+    if (window.confirm(`Are you sure you want to remove ${userName} (${userEmail})? This action cannot be undone.`)) {
+      handleRemoveUser(userId, userEmail);
+    }
   };
 
   const getAvailableMajors = () => {
@@ -155,12 +295,12 @@ export default function UsersPage() {
 
           {/* Success/Error Messages */}
           {success && (
-            <div className="bg-green-500/20 text-green-200 p-4 rounded-md mb-6">
+            <div className="bg-green-500/20 text-green-900 p-4 rounded-md mb-6">
               {success}
             </div>
           )}
           {error && (
-            <div className="bg-red-500/20 text-red-200 p-4 rounded-md mb-6">
+            <div className="bg-red-500/20 text-red-800 p-4 rounded-md mb-6">
               {error}
             </div>
           )}
@@ -168,11 +308,9 @@ export default function UsersPage() {
           {/* Add Mentor Form */}
           {showAddForm && (
             <Card className="mb-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-              <CardHeader>
-                <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                  Add New Mentor
-                </CardTitle>
-              </CardHeader>
+              <CardTitle className="text-xl px-8 font-bold text-gray-800 dark:text-gray-200">
+                Add New Mentor
+              </CardTitle>
               <CardContent>
                 <form onSubmit={handleAddMentor} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -329,11 +467,9 @@ export default function UsersPage() {
 
           {/* Mentors List */}
           <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                Current Mentors ({mentors.length})
-              </CardTitle>
-            </CardHeader>
+            <CardTitle className="text-xl px-8 font-bold text-gray-800 dark:text-gray-200">
+              Current Mentors ({mentors.length})
+            </CardTitle>
             <CardContent>
               {mentors.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 dark:text-gray-400">
@@ -350,7 +486,7 @@ export default function UsersPage() {
                         <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student ID</th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Major</th>
                         <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Year</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -378,15 +514,27 @@ export default function UsersPage() {
                               Year {mentor.yearLevel}
                             </span>
                           </td>
+                
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              mentor.attendanceStatus === 'attending' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                              mentor.attendanceStatus === 'withdraw' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                              mentor.attendanceStatus === 'onLeave' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                              'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                            }`}>
-                              {mentor.attendanceStatus}
-                            </span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handlePromoteUser(mentor.id, 'admin')}>
+                                  Promote to Admin
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handlePromoteUser(mentor.id, 'mentor')}>
+                                  Promote to Mentor
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => confirmRemoveUser(mentor.id, mentor.email, mentor.name)}>
+                                  Remove User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       ))}
@@ -415,12 +563,13 @@ export default function UsersPage() {
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Major</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Year</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {studentList.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                         No students found in the system.
                       </td>
                     </tr>
@@ -448,6 +597,27 @@ export default function UsersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 font-mono">
                           {student.studentId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handlePromoteUser(student.id, 'admin')}>
+                                Promote to Admin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePromoteUser(student.id, 'mentor')}>
+                                Promote to Mentor
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => confirmRemoveUser(student.id, student.email, student.name)}>
+                                Remove User
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))
