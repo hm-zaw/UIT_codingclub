@@ -29,10 +29,10 @@ const routes = [
     color: "text-primary",
   },
   {
-    label: 'Courses',
+    label: 'Workshops',
     icon: BookOpen,
     color: "text-primary",
-    href: '/adm-dashboard/courses',
+    href: '/adm-dashboard/workshops',
   },
   {
     label: 'Events',

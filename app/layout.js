@@ -11,6 +11,9 @@ const lexend = Lexend({ subsets: ['latin'], display: 'swap', variable: '--font-l
 
 export const metadata = {
   title: "UIT Coding Club",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }) {

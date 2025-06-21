@@ -10,29 +10,35 @@ import { DashboardHeader } from '@/components/ui/dashboard-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Users, Clock, GraduationCap, X, Upload, Image as ImageIcon, Calendar, Star } from 'lucide-react';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['500'] });
 
-export default function EventsPage() {
+export default function CoursesPage() {
   const { currentUser, userDataObj, loading } = useAuth();
   const [showLoading, setShowLoading] = useState(true);
-  const [events, setEvents] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingCourse, setEditingCourse] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: '',
-    time: '',
-    location: '',
-    maxParticipants: '',
+    instructor: '',
+    duration: '',
+    level: 'beginner',
+    maxStudents: '',
+    price: '',
     imageUrl: '',
-    category: 'competition'
+    category: 'programming',
+    startDate: '',
+    endDate: '',
+    schedule: '',
+    prerequisites: '',
+    syllabus: ''
   });
   const router = useRouter();
   const auth = getAuth();
@@ -61,7 +67,7 @@ export default function EventsPage() {
       const file = e.target.files[0];
       if (!file) return;
 
-      console.log('Uploading file:', file.name); // Debug log
+      console.log('Uploading file:', file.name);
 
       // Show preview
       const reader = new FileReader();
@@ -91,7 +97,7 @@ export default function EventsPage() {
 
       const data = await response.json();
       
-      console.log('Cloudinary response:', data); // Debug log
+      console.log('Cloudinary response:', data);
       
       if (!data.secure_url) {
         throw new Error('No secure URL received from Cloudinary');
@@ -100,7 +106,7 @@ export default function EventsPage() {
       // Update form data with the uploaded image URL
       setFormData(prev => {
         const updated = { ...prev, imageUrl: data.secure_url };
-        console.log('Updated formData with imageUrl:', updated); // Debug log
+        console.log('Updated formData with imageUrl:', updated);
         return updated;
       });
       
@@ -155,134 +161,159 @@ export default function EventsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch events
+  // Fetch courses
   useEffect(() => {
     if (!showLoading) {
-      fetchEvents();
+      fetchCourses();
     }
   }, [showLoading]);
 
-  const fetchEvents = async () => {
+  const fetchCourses = async () => {
     try {
-      const eventsRef = collection(db, 'events');
-      const q = query(eventsRef, orderBy('date', 'desc'));
+      const coursesRef = collection(db, 'courses');
+      const q = query(coursesRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      const eventsList = [];
+      const coursesList = [];
       querySnapshot.forEach(doc => {
-        eventsList.push({ id: doc.id, ...doc.data() });
+        coursesList.push({ id: doc.id, ...doc.data() });
       });
-      setEvents(eventsList);
+      setCourses(coursesList);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error('Error fetching courses:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Submitting form data:', formData); // Debug log
+      console.log('Submitting form data:', formData);
       
-      if (editingEvent) {
-        // Update existing event
+      if (editingCourse) {
+        // Update existing course
         const updateData = {
           title: formData.title,
           description: formData.description,
-          date: formData.date,
-          time: formData.time,
-          location: formData.location,
-          maxParticipants: parseInt(formData.maxParticipants),
+          instructor: formData.instructor,
+          duration: formData.duration,
+          level: formData.level,
+          maxStudents: parseInt(formData.maxStudents),
+          price: parseFloat(formData.price) || 0,
           category: formData.category,
           imageUrl: formData.imageUrl,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          schedule: formData.schedule,
+          prerequisites: formData.prerequisites,
+          syllabus: formData.syllabus,
           updatedAt: serverTimestamp()
         };
         
-        console.log('Updating event with data:', updateData); // Debug log
-        await updateDoc(doc(db, 'events', editingEvent.id), updateData);
+        console.log('Updating course with data:', updateData);
+        await updateDoc(doc(db, 'courses', editingCourse.id), updateData);
         
-        // Create activity log for event update
+        // Create activity log for workshop update
         await createActivity(
-          'event_scheduled',
-          `Event "${formData.title}" was updated`,
-          { eventId: editingEvent.id, title: formData.title, date: formData.date, location: formData.location }
+          'workshop_created',
+          `Workshop "${formData.title}" was updated`,
+          { workshopId: editingCourse.id, title: formData.title, instructor: formData.instructor }
         );
       } else {
-        // Create new event
-        const eventData = {
+        // Create new course
+        const courseData = {
           ...formData,
-          maxParticipants: parseInt(formData.maxParticipants),
+          maxStudents: parseInt(formData.maxStudents),
+          price: parseFloat(formData.price) || 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           createdBy: currentUser.uid
         };
         
-        console.log('Creating new event with data:', eventData); // Debug log
-        const docRef = await addDoc(collection(db, 'events'), eventData);
+        console.log('Creating new course with data:', courseData);
+        const docRef = await addDoc(collection(db, 'courses'), courseData);
         
-        // Create activity log for new event
+        // Create activity log for new workshop
         await createActivity(
-          'event_scheduled',
-          `New event "${formData.title}" was scheduled`,
-          { eventId: docRef.id, title: formData.title, date: formData.date, location: formData.location }
+          'workshop_created',
+          `New workshop "${formData.title}" was created`,
+          { workshopId: docRef.id, title: formData.title, instructor: formData.instructor }
         );
       }
 
       setShowForm(false);
-      setEditingEvent(null);
+      setEditingCourse(null);
       setFormData({
         title: '',
         description: '',
-        date: '',
-        time: '',
-        location: '',
-        maxParticipants: '',
+        instructor: '',
+        duration: '',
+        level: 'beginner',
+        maxStudents: '',
+        price: '',
         imageUrl: '',
-        category: 'competition'
+        category: 'programming',
+        startDate: '',
+        endDate: '',
+        schedule: '',
+        prerequisites: '',
+        syllabus: ''
       });
       setImagePreview(null);
-      fetchEvents();
+      fetchCourses();
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error('Error saving course:', error);
     }
   };
 
-  const handleEdit = (event) => {
-    setEditingEvent(event);
+  const handleEdit = (course) => {
+    setEditingCourse(course);
     setFormData({
-      title: event.title,
-      description: event.description,
-      date: event.date,
-      time: event.time,
-      location: event.location,
-      maxParticipants: event.maxParticipants.toString(),
-      imageUrl: event.imageUrl || '',
-      category: event.category || 'workshop'
+      title: course.title,
+      description: course.description,
+      instructor: course.instructor,
+      duration: course.duration,
+      level: course.level || 'beginner',
+      maxStudents: course.maxStudents?.toString() || '',
+      price: course.price?.toString() || '',
+      imageUrl: course.imageUrl || '',
+      category: course.category || 'programming',
+      startDate: course.startDate || '',
+      endDate: course.endDate || '',
+      schedule: course.schedule || '',
+      prerequisites: course.prerequisites || '',
+      syllabus: course.syllabus || ''
     });
-    setImagePreview(event.imageUrl || null);
+    setImagePreview(course.imageUrl || null);
     setShowForm(true);
   };
 
-  const handleDelete = async (eventId) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
+  const handleDelete = async (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
       try {
-        await deleteDoc(doc(db, 'events', eventId));
-        fetchEvents();
+        await deleteDoc(doc(db, 'courses', courseId));
+        fetchCourses();
       } catch (error) {
-        console.error('Error deleting event:', error);
+        console.error('Error deleting course:', error);
       }
     }
   };
 
   const openForm = () => {
-    setEditingEvent(null);
+    setEditingCourse(null);
     setFormData({
       title: '',
       description: '',
-      date: '',
-      time: '',
-      location: '',
-      maxParticipants: '',
+      instructor: '',
+      duration: '',
+      level: 'beginner',
+      maxStudents: '',
+      price: '',
       imageUrl: '',
-      category: 'competition'
+      category: 'programming',
+      startDate: '',
+      endDate: '',
+      schedule: '',
+      prerequisites: '',
+      syllabus: ''
     });
     setImagePreview(null);
     setShowForm(true);
@@ -290,16 +321,22 @@ export default function EventsPage() {
 
   const closeForm = () => {
     setShowForm(false);
-    setEditingEvent(null);
+    setEditingCourse(null);
     setFormData({
       title: '',
       description: '',
-      date: '',
-      time: '',
-      location: '',
-      maxParticipants: '',
+      instructor: '',
+      duration: '',
+      level: 'beginner',
+      maxStudents: '',
+      price: '',
       imageUrl: '',
-      category: 'competition'
+      category: 'programming',
+      startDate: '',
+      endDate: '',
+      schedule: '',
+      prerequisites: '',
+      syllabus: ''
     });
     setImagePreview(null);
   };
@@ -314,12 +351,47 @@ export default function EventsPage() {
 
   const getCategoryColor = (category) => {
     switch (category) {
-      case 'workshop': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'competition': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      case 'seminar': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'hackathon': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'programming': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'web-development': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'data-science': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'mobile-development': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      case 'cybersecurity': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      case 'ai-ml': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
+  };
+
+  const getLevelColor = (level) => {
+    switch (level) {
+      case 'beginner': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'advanced': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+    }
+  };
+
+  // Date validation functions
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getMinEndDate = () => {
+    return formData.startDate || getTodayString();
+  };
+
+  const handleStartDateChange = (e) => {
+    const selectedDate = e.target.value;
+    setFormData({...formData, startDate: selectedDate});
+    
+    // If end date is before the new start date, clear it
+    if (formData.endDate && formData.endDate < selectedDate) {
+      setFormData(prev => ({...prev, endDate: ''}));
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    setFormData({...formData, endDate: e.target.value});
   };
 
   return (
@@ -347,24 +419,24 @@ export default function EventsPage() {
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl my-auto font-bold text-gray-900 dark:text-white">Events Management</h1>
+              <h1 className="text-3xl my-auto font-bold text-gray-900 dark:text-white">Workshops</h1>
             </div>
             <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white">
               <Plus className="h-4 w-4 mr-2" />
-              Add Event
+              Add Workshop
             </Button>
           </div>
 
           {/* Form Section */}
           {showForm && (
-            <Card className="p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 mb-10">
-              <div className="px-6 flex items-center justify-between">
-                <div className='pb-4'>
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 mb-6">
+              <div className="p-6 flex items-center justify-between">
+                <div>
                   <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {editingEvent ? 'Edit Event' : 'Create New Event'}
+                    {editingCourse ? 'Edit Workshop' : 'Create New Workshop'}
                   </CardTitle>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {editingEvent ? 'Update the event details below' : 'Fill in the event information'}
+                    {editingCourse ? 'Update the workshop details below' : 'Fill in the workshop information'}
                   </p>
                 </div>
                 <Button
@@ -382,7 +454,7 @@ export default function EventsPage() {
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Event Title *
+                      Workshop Title *
                     </label>
                     <Input
                       type="text"
@@ -390,7 +462,7 @@ export default function EventsPage() {
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       required
                       className="w-full h-11 text-base"
-                      placeholder="Enter event title"
+                      placeholder="Enter workshop title"
                     />
                   </div>
 
@@ -405,68 +477,55 @@ export default function EventsPage() {
                       required
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Describe your event..."
+                      placeholder="Describe your workshop..."
                     />
                   </div>
 
-                  {/* Date and Time */}
+                  {/* Instructor and Duration */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Date *
+                        Instructor *
                       </label>
                       <Input
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        type="text"
+                        value={formData.instructor}
+                        onChange={(e) => setFormData({...formData, instructor: e.target.value})}
                         required
                         className="w-full h-11 text-base"
+                        placeholder="Enter instructor name"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Time *
+                        Duration *
                       </label>
                       <Input
-                        type="time"
-                        value={formData.time}
-                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                        type="text"
+                        value={formData.duration}
+                        onChange={(e) => setFormData({...formData, duration: e.target.value})}
                         required
                         className="w-full h-11 text-base"
+                        placeholder="e.g., 8 weeks, 3 months"
                       />
                     </div>
                   </div>
 
-                  {/* Location */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Location *
-                    </label>
-                    <Input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      required
-                      className="w-full h-11 text-base"
-                      placeholder="Enter event location"
-                    />
-                  </div>
-
-                  {/* Max Participants and Category */}
+                  {/* Level and Category */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Max Participants *
+                        Level *
                       </label>
-                      <Input
-                        type="number"
-                        value={formData.maxParticipants}
-                        onChange={(e) => setFormData({...formData, maxParticipants: e.target.value})}
-                        required
-                        min="1"
-                        className="w-full h-11 text-base"
-                        placeholder="50"
-                      />
+                      <select
+                        value={formData.level}
+                        onChange={(e) => setFormData({...formData, level: e.target.value})}
+                        className="w-full h-11 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -477,17 +536,108 @@ export default function EventsPage() {
                         onChange={(e) => setFormData({...formData, category: e.target.value})}
                         className="w-full h-11 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="competition">Competition</option>
-                        <option value="seminar">Seminar</option>
-                        <option value="hackathon">Hackathon</option>
+                        <option value="programming">Programming</option>
+                        <option value="web-development">Web Development</option>
+                        <option value="data-science">Data Science</option>
+                        <option value="mobile-development">Mobile Development</option>
+                        <option value="cybersecurity">Cybersecurity</option>
+                        <option value="ai-ml">AI & Machine Learning</option>
                       </select>
                     </div>
                   </div>
 
-                  {/* Event Image Upload */}
+                  {/* Max Students and Price */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Max Students *
+                      </label>
+                      <Input
+                        type="number"
+                        value={formData.maxStudents}
+                        onChange={(e) => setFormData({...formData, maxStudents: e.target.value})}
+                        required
+                        min="1"
+                        className="w-full h-11 text-base"
+                        placeholder="30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Price (USD)
+                      </label>
+                      <Input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        min="0"
+                        step="0.01"
+                        className="w-full h-11 text-base"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Start Date and End Date */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Start Date
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={handleStartDateChange}
+                        min={getTodayString()}
+                        className="w-full h-11 text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        End Date
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={handleEndDateChange}
+                        min={getMinEndDate()}
+                        className="w-full h-11 text-base"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Schedule */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Event Image
+                      Schedule
+                    </label>
+                    <Input
+                      type="text"
+                      value={formData.schedule}
+                      onChange={(e) => setFormData({...formData, schedule: e.target.value})}
+                      className="w-full h-11 text-base"
+                      placeholder="e.g., Mondays and Wednesdays 6-8 PM"
+                    />
+                  </div>
+
+                  {/* Prerequisites */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Prerequisites
+                    </label>
+                    <textarea
+                      value={formData.prerequisites}
+                      onChange={(e) => setFormData({...formData, prerequisites: e.target.value})}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="List any prerequisites for this workshop..."
+                    />
+                  </div>
+
+                  {/* Course Image Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Workshop Image
                     </label>
                     
                     {/* Image Preview */}
@@ -496,7 +646,7 @@ export default function EventsPage() {
                         <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
                           <Image
                             src={imagePreview || formData.imageUrl}
-                            alt="Event preview"
+                            alt="Course preview"
                             fill
                             className="object-cover"
                           />
@@ -521,7 +671,7 @@ export default function EventsPage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {uploadingImage ? 'Uploading...' : (imagePreview || formData.imageUrl) ? 'Change Image' : 'Upload Event Image'}
+                            {uploadingImage ? 'Uploading...' : (imagePreview || formData.imageUrl) ? 'Change Image' : 'Upload Workshop Image'}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             PNG, JPG, GIF up to 10MB
@@ -547,20 +697,28 @@ export default function EventsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex space-x-3 py-6 border-t border-gray-200/50 dark:border-gray-700/50">
-                    <Button type="submit" className="flex-1 h-11 bg-[#047d8a] hover:bg-[#036570] text-white font-medium text-base">
-                      {editingEvent ? (
+                    <Button
+                      type="submit"
+                      className="flex-1 h-11 bg-[#047d8a] hover:bg-[#036570] text-white font-medium text-base"
+                    >
+                      {editingCourse ? (
                         <>
                           <Edit className="h-4 w-4 mr-2" />
-                          Update Event
+                          Update Workshop
                         </>
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-2" />
-                          Create Event
+                          Create Workshop
                         </>
                       )}
                     </Button>
-                    <Button type="button" variant="outline" onClick={closeForm} className="flex-1 h-11 font-medium text-base">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={closeForm}
+                      className="flex-1 h-11 font-medium text-base"
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -569,16 +727,16 @@ export default function EventsPage() {
             </Card>
           )}
 
-          {/* Events Grid */}
+          {/* Courses Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <Card key={event.id} className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:scale-105 overflow-hidden">
-                {/* Event Image */}
-                {event.imageUrl && (
+            {courses.map((course) => (
+              <Card key={course.id} className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:scale-105 overflow-hidden">
+                {/* Course Image */}
+                {course.imageUrl && (
                   <div className="relative h-40">
                     <Image
-                      src={event.imageUrl}
-                      alt={event.title}
+                      src={course.imageUrl}
+                      alt={course.title}
                       fill
                       className="object-cover"
                       onError={(e) => {
@@ -588,21 +746,26 @@ export default function EventsPage() {
                   </div>
                 )}
                 
-                <CardHeader className={`px-6 pb-3 ${event.imageUrl ? 'pt-4' : 'pt-6'}`}>
+                <CardHeader className={`px-6 pb-3 ${course.imageUrl ? 'pt-4' : 'pt-6'}`}>
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        {event.title}
+                        {course.title}
                       </CardTitle>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
-                        {event.category}
-                      </span>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(course.category)}`}>
+                          {course.category}
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}>
+                          {course.level}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(event)}
+                        onClick={() => handleEdit(course)}
                         className="text-blue-600 hover:text-blue-700"
                       >
                         <Edit className="h-4 w-4" />
@@ -610,7 +773,7 @@ export default function EventsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(event.id)}
+                        onClick={() => handleDelete(course.id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -620,41 +783,49 @@ export default function EventsPage() {
                 </CardHeader>
                 <CardContent className="px-6 pb-6 flex-grow flex flex-col">
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
-                    {event.description}
+                    {course.description}
                   </p>
                   
                   <div className="space-y-2 mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(event.date).toLocaleDateString()}
+                      <GraduationCap className="h-4 w-4 mr-2" />
+                      {course.instructor}
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="h-4 w-4 mr-2" />
-                      {event.time}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {event.location}
+                      {course.duration}
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Users className="h-4 w-4 mr-2" />
-                      Max: {event.maxParticipants} participants
+                      Max: {course.maxStudents} students
                     </div>
+                    {course.price > 0 && (
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <Star className="h-4 w-4 mr-2" />
+                        ${course.price}
+                      </div>
+                    )}
+                    {course.startDate && (
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {new Date(course.startDate).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {events.length === 0 && !showForm && (
+          {courses.length === 0 && !showForm && (
             <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events yet</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Create your first event to get started</p>
+                <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No workshops yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Create your first workshop to get started</p>
                 <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Event
+                  Add Workshop
                 </Button>
               </CardContent>
             </Card>

@@ -82,7 +82,7 @@
 }
 
 .spinner > div {
- background-color: rgba(0,77,255,0.2);
+ background-color: rgba(93, 167, 167, 0.2); /* Changed from purple-like blue to teal */
  height: 100%;
  position: absolute;
  width: 100%;

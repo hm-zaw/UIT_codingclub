@@ -16,10 +16,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Loading from '@/components/Loading';
+import Image from 'next/image';
+import { DashboardNav } from '@/components/ui/dashboard-nav';
+import { DashboardHeader } from '@/components/ui/dashboard-header';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['500']});
-
+  
 export default function UsersPage() {
+  const [showLoading, setShowLoading] = useState(true);
   const { currentUser, userDataObj, loading: authLoading } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
   const [mentors, setMentors] = useState([]);
@@ -70,6 +75,27 @@ export default function UsersPage() {
       fetchStudentList();
     }
   }, [authLoading, currentUser]);
+
+  // Handle authentication and loading states
+  useEffect(() => {
+    if (!authLoading) {
+      if (!currentUser) {
+        // User is not authenticated, redirect to login
+        router.push('/Login');
+        return;
+      }
+      
+      // Check if user has admin privileges
+      if (userDataObj && !['admin', 'teacher'].includes(userDataObj.role)) {
+        setError('You do not have permission to access this page. Only admin and teacher users can access user management.');
+        setShowLoading(false);
+        return;
+      }
+      
+      // User is authenticated and has proper permissions
+      setShowLoading(false);
+    }
+  }, [authLoading, currentUser, userDataObj, router]);
 
   const fetchMentors = async () => {
     try {
@@ -271,11 +297,36 @@ export default function UsersPage() {
   useEffect(() => {
     setMajor('');
   }, [enrolledYear]);
-
+  
+  if (showLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 via-teal-100 to-slate-100">
+          <Loading />
+        </div>
+      );
+    }
   return (
+
     <div className="flex min-h-screen bg-slate-50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-900 dark:to-slate-900">
+      {/* Sidebar */}
+      <div className="hidden lg:flex w-64 flex-col fixed inset-y-0">
+        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+          <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-200/50 dark:border-gray-700/50 space-x-2">
+            <div className="bg-white/20 dark:bg-transparent p-1 rounded-lg">
+              <Image src={'/uit_logo.png'} width={40} height={40} alt={'uit_logo'} />
+            </div>
+            <div>
+              <h1 className={`${montserrat.className} my-auto text-lg font-semibold text-slate-950 dark:text-white mt-1`}>UIT Coding Club</h1>
+            </div>
+          </div>
+          <DashboardNav />
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="flex flex-col flex-1">
+      <div className="lg:pl-64 flex flex-col flex-1">
+        <DashboardHeader />
+        
         <main className="flex-1 p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -467,7 +518,7 @@ export default function UsersPage() {
 
           {/* Mentors List */}
           <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
-            <CardTitle className="text-xl px-8 font-bold text-gray-800 dark:text-gray-200">
+            <CardTitle className="text-xl p-8 font-bold text-gray-800 dark:text-gray-200">
               Current Mentors ({mentors.length})
             </CardTitle>
             <CardContent>

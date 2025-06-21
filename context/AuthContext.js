@@ -2,7 +2,7 @@
 import React from "react"
 import { auth, db } from "@/firebase"
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth"
-import { doc, getDoc, setDoc } from "firebase/firestore"
+import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore"
 import { sendEmailVerification } from "firebase/auth";
 import { useState, useEffect, useContext } from "react"
 
@@ -15,6 +15,23 @@ export function AuthProvider({ children }) {
     const [ currentUser, setCurrentUser ] = useState(null);
     const [ userDataObj, setUserDataObj ] = useState(null);
     const [ loading, setLoading ] = useState(true); // Initialize true for initial auth check
+
+    // Function to create activity log
+    const createActivity = async (type, description, details = {}) => {
+        try {
+            const activityData = {
+                type,
+                description,
+                details,
+                timestamp: serverTimestamp(),
+                createdBy: 'system'
+            };
+            
+            await addDoc(collection(db, 'activities'), activityData);
+        } catch (error) {
+            console.error('Error creating activity:', error);
+        }
+    };
 
     // Auth Handlers
     async function signup(email, password) {
@@ -52,6 +69,13 @@ export function AuthProvider({ children }) {
                 status: '',
                 role: '' 
             }, { merge: true });
+
+            // Create activity log for new student registration
+            await createActivity(
+                'student_registration',
+                `New student registration: ${email}`,
+                { email: email, userId: user.uid }
+            );
 
             return {
                 success: true,
