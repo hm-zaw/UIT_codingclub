@@ -225,7 +225,7 @@ export default function AdminDashboard() {
             {stats.map((stat) => (
               <Card key={stat.title} className={`relative overflow-hidden border ${stat.borderColor} bg-white/70 dark:bg-slate-800/70 transition-all duration-300 hover:scale-105`}>
                 <div className={`absolute inset-0 bg-gradient-to-r ${stat.bgGradient} opacity-50`}></div>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10 pt-6 pb-4">
                   <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     {stat.title}
                   </CardTitle>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                     <stat.icon className="h-4 w-4 text-white" />
                   </div>
                 </CardHeader>
-                <CardContent className="relative z-10">
+                <CardContent className="relative z-10 pb-6">
                   <div className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                     {stat.value}
                   </div>

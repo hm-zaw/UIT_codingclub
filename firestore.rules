@@ -13,6 +13,14 @@ service cloud.firestore {
       );
     }
     
+    // Events collection - allow admin users to manage events
+    match /events/{eventId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['teacher', 'mentor', 'admin'];
+    }
+    
     // Allow users to read public data
     match /public/{document=**} {
       allow read: if true;
@@ -23,4 +31,4 @@ service cloud.firestore {
       allow read, write: if false;
     }
   }
-} 
+}
