@@ -17,20 +17,19 @@ function Card({
   );
 }
 
-function CardHeader({
-  className,
-  ...props
-}) {
+function CardHeader({ className, ...props }) {
   return (
-    (<div
+    <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pb-2 has-data-[slot=card-action]:grid-cols-[1fr_auto]",
         className
       )}
-      {...props} />)
+      {...props}
+    />
   );
 }
+
 
 function CardTitle({
   className,

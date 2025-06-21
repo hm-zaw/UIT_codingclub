@@ -19,35 +19,36 @@ const routes = [
     label: 'Dashboard',
     icon: LayoutDashboard,
     href: '/adm-dashboard',
-    color: "text-sky-500"
+    color: "text-primary"
   },
   {
     label: 'Users',
     icon: Users,
     href: '/adm-dashboard/users',
-    color: "text-violet-500",
+    color: "text-primary",
   },
   {
     label: 'Courses',
     icon: BookOpen,
-    color: "text-pink-700",
+    color: "text-primary",
     href: '/adm-dashboard/courses',
   },
   {
     label: 'Schedule',
     icon: Calendar,
-    color: "text-orange-700",
+    color: "text-primary",
     href: '/adm-dashboard/schedule',
   },
   {
     label: 'Messages',
     icon: MessageSquare,
-    color: "text-emerald-500",
+    color: "text-primary",
     href: '/adm-dashboard/messages',
   },
   {
     label: 'Settings',
     icon: Settings,
+    color: "text-primary",
     href: '/adm-dashboard/settings',
   },
 ];
@@ -64,8 +65,8 @@ export function DashboardNav() {
               key={route.href}
               href={route.href}
               className={cn(
-                "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-primary hover:bg-primary/10 rounded-lg transition",
-                pathname === route.href ? "text-primary bg-primary/10" : "text-muted-foreground",
+                "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-primary rounded-lg transition",
+                pathname === route.href ? "text-primary bg-teal-50 dark:bg-slate-800/70" : "text-muted-foreground",
               )}
             >
               <div className="flex items-center flex-1">

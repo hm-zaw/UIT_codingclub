@@ -10,8 +10,13 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ['500']})
 
 export default function GlobalLayout({ children }) {
   const pathname = usePathname();
+  
+  // Check if it's the admin dashboard route
+  if (pathname?.startsWith('/adm-dashboard')) {
+    return <>{children}</>;
+  }
+  
   const specialRoutes = [
-    '/adm-dashboard',
     '/user-dashboard',
     '/contact',
     '/resources',
