@@ -12,7 +12,8 @@ import {
   CalendarDays,
   Calendar,
   MessageSquare,
-  LogOut
+  LogOut,
+  Library
 } from 'lucide-react';
 
 const routes = [
@@ -41,10 +42,10 @@ const routes = [
     href: '/adm-dashboard/events',
   },
   {
-    label: 'Settings',
-    icon: Settings,
+    label: 'Resources',
+    icon: Library,
     color: "text-primary",
-    href: '/adm-dashboard/settings',
+    href: '/adm-dashboard/resources',
   },
 ];
 
