@@ -10,7 +10,7 @@ import { DashboardHeader } from '@/components/ui/dashboard-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Plus, Edit, Trash2, Users, Clock, GraduationCap, X, Upload, Image as ImageIcon, Calendar, Star } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Users, Clock, GraduationCap, X, Upload, Image as ImageIcon, Calendar, Star, Menu } from 'lucide-react';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google';
 
@@ -24,6 +24,7 @@ export default function CoursesPage() {
   const [editingCourse, setEditingCourse] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -396,7 +397,35 @@ export default function CoursesPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-900 dark:to-slate-900">
-      {/* Sidebar */}
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[60]">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed left-0 top-0 h-full w-64 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 overflow-y-auto">
+            <div className="flex items-center justify-between h-16 flex-shrink-0 px-4 border-b border-gray-200/50 dark:border-gray-700/50">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white/20 dark:bg-transparent p-1 rounded-lg">
+                  <Image src={'/uit_logo.png'} width={40} height={40} alt={'uit_logo'} />
+                </div>
+                <div>
+                  <h1 className={`${montserrat.className} my-auto text-lg font-semibold text-slate-950 dark:text-white mt-1`}>UIT Coding Club</h1>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              </Button>
+            </div>
+            <DashboardNav />
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar - Desktop */}
       <div className="hidden lg:flex w-64 flex-col fixed inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
           <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-200/50 dark:border-gray-700/50 space-x-2">
@@ -412,27 +441,55 @@ export default function CoursesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
-        <DashboardHeader />
-        
-        <main className="flex-1 p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl my-auto font-bold text-gray-900 dark:text-white">Workshops</h1>
-            </div>
-            <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Workshop
+      <div className="lg:pl-64 flex flex-col flex-1 w-full">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl sticky top-0 z-50">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 min-w-[44px] min-h-[44px]"
+            >
+              <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </Button>
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
+              <div className="bg-white/20 dark:bg-transparent p-1 rounded-lg flex-shrink-0">
+                <Image src={'/uit_logo.png'} width={32} height={32} alt={'uit_logo'} />
+              </div>
+              <h1 className={`${montserrat.className} my-auto text-lg font-semibold text-slate-950 dark:text-white truncate`}>UIT Coding Club</h1>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:block">
+          <DashboardHeader />
+        </div>
+        
+        <main className="flex-1 p-4 sm:p-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Workshops</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 hidden sm:block">
+                Create and manage educational workshops
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Workshop
+              </Button>
+            </div>
           </div>
 
           {/* Form Section */}
           {showForm && (
-            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 mb-6">
-              <div className="p-6 flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <Card className="p-4 sm:p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 mb-6 sm:mb-10">
+              <div className="px-2 sm:px-6 flex items-center justify-between">
+                <div className='pb-4'>
+                  <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                     {editingCourse ? 'Edit Workshop' : 'Create New Workshop'}
                   </CardTitle>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -449,8 +506,8 @@ export default function CoursesPage() {
                 </Button>
               </div>
               
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+              <CardContent className="px-2 sm:px-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -482,7 +539,7 @@ export default function CoursesPage() {
                   </div>
 
                   {/* Instructor and Duration */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Instructor *
@@ -512,7 +569,7 @@ export default function CoursesPage() {
                   </div>
 
                   {/* Level and Category */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Level *
@@ -547,7 +604,7 @@ export default function CoursesPage() {
                   </div>
 
                   {/* Max Students and Price */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Max Students *
@@ -579,7 +636,7 @@ export default function CoursesPage() {
                   </div>
 
                   {/* Start Date and End Date */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Start Date
@@ -696,7 +753,7 @@ export default function CoursesPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-3 py-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                  <div className="flex flex-col sm:flex-row gap-3 py-6 border-t border-gray-200/50 dark:border-gray-700/50">
                     <Button
                       type="submit"
                       className="flex-1 h-11 bg-[#047d8a] hover:bg-[#036570] text-white font-medium text-base"
@@ -728,7 +785,7 @@ export default function CoursesPage() {
           )}
 
           {/* Courses Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => (
               <Card key={course.id} className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:scale-105 overflow-hidden">
                 {/* Course Image */}

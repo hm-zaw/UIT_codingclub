@@ -10,6 +10,7 @@ import { FaGraduationCap, FaCode, FaUsers } from 'react-icons/fa';
 import Hero from '@/components/Hero';
 import { CardContainer, CardBody, CardItem } from '@/components/ui/3d-card';
 import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
+import { getAllEvents } from '@/firebase/utils';
 
 const monstserrat = Montserrat({ subsets: ['latin'], weight: ['500'] });
 
@@ -89,21 +90,38 @@ export default function Dashboard() {
   ];
 
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
-    const storedEvents = localStorage.getItem('events');
-    if (storedEvents) {
-      const allEvents = JSON.parse(storedEvents);
-      const now = new Date();
-      now.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+    const fetchUpcomingEvents = async () => {
+      try {
+        setEventsLoading(true);
+        const allEvents = await getAllEvents();
+        
+        // Filter for upcoming events (events with dates >= today)
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
 
-      const filteredEvents = allEvents.filter(event => {
-        const eventDate = new Date(event.date);
-        eventDate.setHours(0, 0, 0, 0); // Normalize event date to start of day
-        return eventDate >= now;
-      }).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
-      setUpcomingEvents(filteredEvents);
-    }
+        const filteredEvents = allEvents.filter(event => {
+          const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+          eventDate.setHours(0, 0, 0, 0); // Normalize event date to start of day
+          return eventDate >= now;
+        }).sort((a, b) => {
+          const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+          const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+          return dateA - dateB;
+        }); // Sort by date
+
+        setUpcomingEvents(filteredEvents);
+      } catch (error) {
+        console.error('Error fetching upcoming events:', error);
+        setUpcomingEvents([]);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+
+    fetchUpcomingEvents();
   }, []);
 
 
@@ -313,19 +331,41 @@ export default function Dashboard() {
         <div className="container">
           <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-12">Upcoming Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.slice(0, 2).map(event => (
-                <div key={event.id} className="card">
-                  <div className="text-[#387d8a] text-sm mb-1">📅 {event.date} | ⏰ {event.time}</div>
-                  <h3 className="text-lg font-bold mb-3">{event.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-1">
-                    {event.shortDescription}
-                  </p>
-                  <a href="/events" className="btn btn-primary text-sm px-4 py-2">
-                    Learn More
-                  </a>
-                </div>
-              ))
+            {eventsLoading ? (
+              <div className="col-span-full text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#387d8a] mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading upcoming events...</p>
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              upcomingEvents.slice(0, 2).map(event => {
+                const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                });
+                
+                return (
+                  <div key={event.id} className="card">
+                    <div className="text-[#387d8a] text-sm mb-1">
+                      📅 {formattedDate} | ⏰ {event.time || 'TBD'}
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{event.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {event.shortDescription || event.description || 'No description available'}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        📍 {event.location || 'Location TBD'}
+                      </span>
+                      <a href="/events" className="btn btn-primary text-sm px-4 py-2">
+                        Learn More
+                      </a>
+                    </div>
+                  </div>
+                );
+              })
             ) : (
               <p className="text-center text-base text-gray-500 col-span-full">No upcoming events at the moment. Check back soon!</p>
             )}

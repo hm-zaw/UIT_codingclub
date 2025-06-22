@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { getAllEvents, getEventsByDate, createSampleEvents, registerForEvent, isUserRegisteredForEvent } from '@/firebase/utils';
+import { getAllEvents, getEventsByDate, createSampleEvents, registerForEvent, isUserRegisteredForEvent, getUserRegisteredEvents } from '@/firebase/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus, Database } from 'lucide-react';
+import { Calendar, Plus, Database, CheckCircle, Clock, MapPin } from 'lucide-react';
 
 export default function Events() {
   // State to manage the selected date and events for that date
@@ -17,6 +17,8 @@ export default function Events() {
   const [registrationConfirm, setRegistrationConfirm] = useState({});
   const [userRegistrations, setUserRegistrations] = useState({});
   const [registrationLoading, setRegistrationLoading] = useState({});
+  const [userRegisteredEvents, setUserRegisteredEvents] = useState([]);
+  const [registeredEventsLoading, setRegisteredEventsLoading] = useState(false);
 
   // Get current user from auth context
   const { currentUser } = useAuth();
@@ -100,6 +102,30 @@ export default function Events() {
     checkUserRegistrations();
   }, [currentUser, allEvents]);
 
+  // Load user's registered events
+  useEffect(() => {
+    const fetchUserRegisteredEvents = async () => {
+      if (!currentUser) {
+        setUserRegisteredEvents([]);
+        return;
+      }
+
+      try {
+        setRegisteredEventsLoading(true);
+        const registeredEvents = await getUserRegisteredEvents(currentUser.uid);
+        console.log('User registered events:', registeredEvents);
+        setUserRegisteredEvents(registeredEvents);
+      } catch (error) {
+        console.error('Error fetching user registered events:', error);
+        setUserRegisteredEvents([]);
+      } finally {
+        setRegisteredEventsLoading(false);
+      }
+    };
+
+    fetchUserRegisteredEvents();
+  }, [currentUser]);
+
   const handleRegisterClick = (eventId) => {
     if (!currentUser) {
       alert('Please log in to register for events.');
@@ -139,6 +165,10 @@ export default function Events() {
         // Refresh events to update participant count
         const events = await getAllEvents();
         setAllEvents(events);
+        
+        // Refresh user's registered events
+        const registeredEvents = await getUserRegisteredEvents(currentUser.uid);
+        setUserRegisteredEvents(registeredEvents);
       } else {
         alert(`❌ Registration failed: ${registrationResult.message}`);
       }
@@ -271,144 +301,240 @@ export default function Events() {
         </div>
       </section>
 
-      {/* Events Calendar and List Section */}
-      {currentUser ? (
-        <section className="section bg-white py-12">
+      {/* User's Registered Events Section */}
+      {currentUser && (
+        <section className="section bg-gray-50 py-12">
           <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
-                Events
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                My Registered Events
               </h2>
+              <p className="text-gray-600">
+                Events you've signed up for
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mx-auto">
-              {/* Calendar Column */}
-              <div className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
-                <div className="flex justify-between items-center mb-6">
-                  <button onClick={() => navigateMonth(-1)} className="text-gray-600 hover:text-[#387d8a]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <h3 className="text-lg font-normal text-gray-900">
-                    {monthNames[currentMonth]} {currentYear}
-                  </h3>
-                  <button onClick={() => navigateMonth(1)} className="text-gray-600 hover:text-[#387d8a]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-7 text-center text-sm font-light text-gray-500 mb-4">
-                  {daysOfWeek.map((day, index) => <div key={index}>{day}</div>)}
-                </div>
-
-                <div className="grid grid-cols-7 text-center text-base font-normal">
-                  {calendarDays.map((day, index) => (
-                    <div
-                      key={index}
-                      className={`
-                        relative cursor-pointer rounded-full
-                        ${day === selectedDate.getDate() && currentMonth === selectedDate.getMonth() && currentYear === selectedDate.getFullYear()
-                          ? 'bg-[#EF4444] text-white'
-                          : ''}
-                        ${day ? 'hover:bg-gray-100' : 'text-gray-300'}
-                        p-1 sm:p-2 md:p-3
-                        min-w-[2rem] min-h-[2rem] sm:min-w-[2.5rem] sm:min-h-[2.5rem]
-                        flex items-center justify-center mx-auto
-                      `}
-                      onClick={() => day && setSelectedDate(new Date(currentYear, currentMonth, day))}
-                      style={{ aspectRatio: '1 / 1' }}
-                    >
-                      {day}
-                      {day && eventDates.includes(new Date(currentYear, currentMonth, day).toDateString()) && (
-                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#387d8a] rounded-full"></span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            {registeredEventsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#387d8a] mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading your events...</p>
               </div>
-
-              {/* Events List Column */}
-              <div className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Events for {selectedDate.toDateString()}
-                </h3>
-                <div className="space-y-4">
-                  {eventsForSelectedDate.length > 0 ? (
-                    eventsForSelectedDate.map(event => {
-                      // Handle Firestore Timestamp objects
-                      const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
-                      const formattedDate = eventDate.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      });
-                      
-                      return (
-                        <div key={event.id} className="border-b border-gray-100 pb-4 last:border-0">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="text-xl font-bold text-[#387d8a] mb-1">{event.title}</h4>
-                              <p className="text-sm text-gray-600 mb-2">
-                                📅 {formattedDate} | ⏰ {event.time} | 📍 {event.location}
-                              </p>
-                              <span className="inline-block mb-2 px-2 py-1 text-xs font-medium bg-[#387d8a]/10 text-[#387d8a] rounded-full">
-                                {event.category}
-                              </span>
-                              <p className="text-sm text-gray-500 mb-2">
-                                👥 {event.currentParticipants || 0}/{event.maxParticipants || '∞'} participants
-                              </p>
-                              {event.description && (
-                                <p className="text-base text-gray-700 whitespace-pre-wrap">{event.description}</p>
-                              )}
+            ) : userRegisteredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userRegisteredEvents.map(event => {
+                  const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+                  const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                  });
+                  const isUpcoming = eventDate > new Date();
+                  
+                  return (
+                    <div key={event.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-[#387d8a] mb-2 line-clamp-2">
+                            {event.title}
+                          </h3>
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                              <span>{formattedDate}</span>
                             </div>
-                            <div className="ml-4 flex-shrink-0">
-                              {userRegistrations[event.id] ? (
-                                <span className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold shadow-md text-sm">
-                                  Registered ✓
-                                </span>
-                              ) : !registrationConfirm[event.id] ? (
-                                <button
-                                  onClick={() => handleRegisterClick(event.id)}
-                                  disabled={registrationLoading[event.id]}
-                                  className="px-6 py-2.5 bg-[#387d8a] text-white rounded-lg font-semibold hover:bg-[#2c5f6a] transition-colors shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  {registrationLoading[event.id] ? 'Processing...' : 'Register'}
-                                </button>
-                              ) : (
-                                <div className="flex flex-col space-y-2">
-                                  <button
-                                    onClick={() => handleConfirmRegistration(event)}
-                                    disabled={registrationLoading[event.id]}
-                                    className="px-6 py-2.5 bg-[#047d8a] hover:bg-[#036570] text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {registrationLoading[event.id] ? 'Processing...' : 'Confirm'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleCancelRegistration(event.id)}
-                                    disabled={registrationLoading[event.id]}
-                                    className="px-6 py-2.5 bg-slate-300 text-white rounded text-xs font-medium hover:bg-slate-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              )}
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-2 text-gray-400" />
+                              <span>{event.time}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                              <span className="line-clamp-1">{event.location}</span>
                             </div>
                           </div>
                         </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-lg text-gray-500">No events for this date.</p>
-                  )}
+                        <div className="ml-4 flex-shrink-0">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                            isUpcoming 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            {isUpcoming ? 'Upcoming' : 'Past'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {event.description && (
+                        <p className="text-sm text-gray-700 mb-4 line-clamp-3">
+                          {event.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>👥 {event.currentParticipants || 0}/{event.maxParticipants || '∞'} participants</span>
+                        <span className="capitalize">{event.type || event.category}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="bg-[#387d8a]/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-8 w-8 text-[#387d8a]" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Events Registered Yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You haven't registered for any events yet. Browse the calendar below to find exciting events to join!
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Events Calendar and List Section */}
+      {currentUser ? (
+        <>
+          <section className="section bg-white py-12">
+            <div className="container">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
+                  Events
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mx-auto">
+                {/* Calendar Column */}
+                <div className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
+                  <div className="flex justify-between items-center mb-6">
+                    <button onClick={() => navigateMonth(-1)} className="text-gray-600 hover:text-[#387d8a]">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <h3 className="text-lg font-normal text-gray-900">
+                      {monthNames[currentMonth]} {currentYear}
+                    </h3>
+                    <button onClick={() => navigateMonth(1)} className="text-gray-600 hover:text-[#387d8a]">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-7 text-center text-sm font-light text-gray-500 mb-4">
+                    {daysOfWeek.map((day, index) => <div key={index}>{day}</div>)}
+                  </div>
+
+                  <div className="grid grid-cols-7 text-center text-base font-normal">
+                    {calendarDays.map((day, index) => (
+                      <div
+                        key={index}
+                        className={`
+                          relative cursor-pointer rounded-full
+                          ${day === selectedDate.getDate() && currentMonth === selectedDate.getMonth() && currentYear === selectedDate.getFullYear()
+                            ? 'bg-[#EF4444] text-white'
+                            : ''}
+                          ${day ? 'hover:bg-gray-100' : 'text-gray-300'}
+                          p-1 sm:p-2 md:p-3
+                          min-w-[2rem] min-h-[2rem] sm:min-w-[2.5rem] sm:min-h-[2.5rem]
+                          flex items-center justify-center mx-auto
+                        `}
+                        onClick={() => day && setSelectedDate(new Date(currentYear, currentMonth, day))}
+                        style={{ aspectRatio: '1 / 1' }}
+                      >
+                        {day}
+                        {day && eventDates.includes(new Date(currentYear, currentMonth, day).toDateString()) && (
+                          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#387d8a] rounded-full"></span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Events List Column */}
+                <div className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                    Events for {selectedDate.toDateString()}
+                  </h3>
+                  <div className="space-y-4">
+                    {eventsForSelectedDate.length > 0 ? (
+                      eventsForSelectedDate.map(event => {
+                        // Handle Firestore Timestamp objects
+                        const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+                        const formattedDate = eventDate.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        });
+                        
+                        return (
+                          <div key={event.id} className="border-b border-gray-100 pb-4 last:border-0">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h4 className="text-xl font-bold text-[#387d8a] mb-1">{event.title}</h4>
+                                <p className="text-sm text-gray-600 mb-2">
+                                  📅 {formattedDate} | ⏰ {event.time} | 📍 {event.location}
+                                </p>
+                                <span className="inline-block mb-2 px-2 py-1 text-xs font-medium bg-[#387d8a]/10 text-[#387d8a] rounded-full">
+                                  {event.category}
+                                </span>
+                                <p className="text-sm text-gray-500 mb-2">
+                                  👥 {event.currentParticipants || 0}/{event.maxParticipants || '∞'} participants
+                                </p>
+                                {event.description && (
+                                  <p className="text-base text-gray-700 whitespace-pre-wrap">{event.description}</p>
+                                )}
+                              </div>
+                              <div className="ml-4 flex-shrink-0">
+                                {userRegistrations[event.id] ? (
+                                  <span className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold shadow-md text-sm">
+                                    Registered ✓
+                                  </span>
+                                ) : !registrationConfirm[event.id] ? (
+                                  <button
+                                    onClick={() => handleRegisterClick(event.id)}
+                                    disabled={registrationLoading[event.id]}
+                                    className="px-6 py-2.5 bg-[#387d8a] text-white rounded-lg font-semibold hover:bg-[#2c5f6a] transition-colors shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {registrationLoading[event.id] ? 'Processing...' : 'Register'}
+                                  </button>
+                                ) : (
+                                  <div className="flex flex-col space-y-2">
+                                    <button
+                                      onClick={() => handleConfirmRegistration(event)}
+                                      disabled={registrationLoading[event.id]}
+                                      className="px-6 py-2.5 bg-[#047d8a] hover:bg-[#036570] text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      {registrationLoading[event.id] ? 'Processing...' : 'Confirm'}
+                                    </button>
+                                    <button
+                                      onClick={() => handleCancelRegistration(event.id)}
+                                      disabled={registrationLoading[event.id]}
+                                      className="px-6 py-2.5 bg-slate-300 text-white rounded text-xs font-medium hover:bg-slate-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-lg text-gray-500">No events for this date.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </>
       ) : (
         <section className="section bg-white py-16">
           <div className="container">

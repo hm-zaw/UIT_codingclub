@@ -67,7 +67,7 @@ export default function GlobalLayout({ children }) {
 
       {children}
       <footer className="p-4 sm:p-8">
-        <p className={`text-center mx-auto text-gray-600 dark:text-gray-400`}>Created by HAK Dynamics</p>
+        <p className={`text-center mx-auto text-gray-600 dark:text-gray-400 text-sm sm:text-base`}>Created by HAK Dynamics</p>
       </footer>
     </>
   );

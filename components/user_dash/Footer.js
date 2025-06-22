@@ -4,29 +4,29 @@ import Logo from './Logo';
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-br from-gray-50 via-white to-gray-50 border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Logo and Description */}
-          <div className="col-span-1 md:col-span-2">
-            <div className="mb-6">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <div className="mb-4 sm:mb-6">
               <Logo className="my-0" />
             </div>
-            <p className="text-gray-600 text-base leading-relaxed">
+            <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-md lg:max-w-none">
               Empowering students through code, collaboration, and innovation. Join us in building the future of technology.
             </p>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="text-base font-semibold text-gray-900 uppercase tracking-wider mb-4">
+          <div className="col-span-1">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900 uppercase tracking-wider mb-3 sm:mb-4">
               Quick Links
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2 sm:space-y-3">
               {['About Us', 'Events', 'Resources', 'Contact'].map((link) => (
                 <li key={link}>
                   <a 
                     href={`/${link.toLowerCase().replace(' ', '-')}`}
-                    className="text-gray-600 hover:text-[#387d8a] transition-colors duration-200 text-base flex items-center group"
+                    className="text-gray-600 hover:text-[#387d8a] transition-colors duration-200 text-sm sm:text-base flex items-center group"
                   >
                     <span className="w-0 h-0.5 bg-gradient-to-r from-[#387d8a] to-[#2c5f6a] mr-0 group-hover:w-3 group-hover:mr-2 transition-all duration-300"></span>
                     {link}
@@ -37,39 +37,39 @@ export default function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div>
-            <h3 className="text-base font-semibold text-gray-900 uppercase tracking-wider mb-4">
+          <div className="col-span-1">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900 uppercase tracking-wider mb-3 sm:mb-4">
               Contact Us
             </h3>
-            <ul className="space-y-3">
-              <li className="flex items-center space-x-3 text-gray-600 group">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <ul className="space-y-3 sm:space-y-3">
+              <li className="flex items-start space-x-2 sm:space-x-3 text-gray-600 group">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300 flex-shrink-0 mt-0.5 sm:mt-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <span className="text-base group-hover:text-[#387d8a] transition-colors duration-200">coderclub@uit.edu.mm</span>
+                <span className="text-xs sm:text-base group-hover:text-[#387d8a] transition-colors duration-200 break-all sm:break-words">coderclub@uit.edu.mm</span>
               </li>
-              <li className="flex items-center space-x-3 text-gray-600 group">
-                <div className="w-[50px] h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <li className="flex items-start space-x-2 sm:space-x-3 text-gray-600 group">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300 flex-shrink-0 mt-0.5 sm:mt-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <span className="text-base group-hover:text-[#387d8a] transition-colors duration-200">University of Information Technology</span>
+                <span className="text-xs sm:text-base group-hover:text-[#387d8a] transition-colors duration-200 break-words leading-tight">University of Information Technology</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Social Links and Copyright */}
-        <div className="mt-12 pt-8 border-t border-gray-100">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-base text-gray-500">
-              © {new Date().getFullYear()} Coder Club. All rights reserved.
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <p className="text-xs sm:text-base text-gray-500 text-center sm:text-left px-2">
+              © {new Date().getFullYear()} HAK Dynamics. All rights reserved.
             </p>
-            <div className="flex space-x-6">
+            <div className="flex space-x-4 sm:space-x-6">
               {[
                 { icon: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z", name: "Facebook" },
                 { icon: "M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z", name: "Twitter" },
@@ -79,10 +79,10 @@ export default function Footer() {
                 <a
                   key={social.name}
                   href="#"
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#387d8a] to-[#2c5f6a] flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300"
                   aria-label={social.name}
                 >
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d={social.icon} />
                   </svg>
                 </a>
