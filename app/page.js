@@ -5,6 +5,7 @@ import React from 'react'
 import { useState, useEffect } from 'react';
 import { FaGraduationCap, FaCode, FaUsers } from 'react-icons/fa';
 import { CardBody, CardItem, CardContainer } from '@/components/ui/3d-card';
+import { Calendar, Plus, Database } from 'lucide-react';
 
 const upcomingActivities = [
   {
@@ -194,27 +195,68 @@ export default function page() {
 
       {/* Upcoming Events Section */}
       <section className="section bg-white py-2 my-24">
-        <div className="container">
-          <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-12">Upcoming Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.slice(0, 2).map(event => (
-                <div key={event.id} className="card">
-                  <div className="text-[#387d8a] text-sm mb-1">📅 {event.date} | ⏰ {event.time}</div>
-                  <h3 className="text-lg font-bold mb-3">{event.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-1">
-                    {event.shortDescription}
-                  </p>
-                  <a href="/events" className="btn btn-primary text-sm px-4 py-2">
-                    Learn More
-                  </a>
+      <div className="container">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="mb-8">
+                <Calendar className="h-16 w-16 text-[#387d8a] mx-auto mb-6" />
+                <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
+                  Join Our Exciting Events
+                </h2>
+                <p className="text-xl text-gray-600 mb-8">
+                  Discover workshops, coding sessions, and networking opportunities. 
+                  Connect with fellow developers and enhance your skills!
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="text-center">
+                  <div className="bg-[#387d8a]/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <svg className="h-8 w-8 text-[#387d8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Learn & Grow</h3>
+                  <p className="text-gray-600">Access workshops and coding sessions to enhance your technical skills</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-base text-gray-500 col-span-full">No upcoming events at the moment. Check back soon!</p>
-            )}
+                
+                <div className="text-center">
+                  <div className="bg-[#387d8a]/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <svg className="h-8 w-8 text-[#387d8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Network</h3>
+                  <p className="text-gray-600">Connect with fellow developers and industry professionals</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-[#387d8a]/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <svg className="h-8 w-8 text-[#387d8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Stay Updated</h3>
+                  <p className="text-gray-600">Get notified about upcoming events and opportunities</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => window.location.href = '/Login'}
+                  className="inline-flex items-center px-8 py-4 bg-[#387d8a] text-white font-semibold rounded-lg hover:bg-[#2c5f6a] transition-colors shadow-lg text-lg"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Join Now
+                </button>
+                <p className="text-sm text-gray-500">
+                  Already have an account? 
+                  <a href="/Login" className="text-[#387d8a] hover:underline ml-1">
+                    Sign in here
+                  </a>
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
       </section>
 
       {/* Study Plans Section */}

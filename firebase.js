@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth } from 'firebase/auth'
+import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
@@ -48,6 +48,17 @@ try {
   if (validateFirebaseConfig()) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
+    
+    // Set Firebase Auth to use session-only persistence
+    // This ensures users are logged out when the browser session ends
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        console.log('Firebase Auth configured for session-only persistence');
+      })
+      .catch((error) => {
+        console.error('Error setting Firebase Auth persistence:', error);
+      });
+    
     db = getFirestore(app);
     storage = getStorage(app);
     console.log('Firebase initialized successfully');

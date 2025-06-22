@@ -10,9 +10,10 @@ import { DashboardHeader } from '@/components/ui/dashboard-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon, AlertCircle, Database } from 'lucide-react';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google';
+import { createSampleEvents } from '@/firebase/utils';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['500'] });
 
@@ -426,6 +427,22 @@ export default function EventsPage() {
     setImagePreview(null);
   };
 
+  // Function to create sample events
+  const handleCreateSampleEvents = async () => {
+    try {
+      const success = await createSampleEvents();
+      if (success) {
+        alert('Sample events created successfully!');
+        fetchEvents(); // Refresh the events list
+      } else {
+        alert('Failed to create sample events. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating sample events:', error);
+      alert('Error creating sample events. Please check the console for details.');
+    }
+  };
+
   if (showLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 via-teal-100 to-slate-100">
@@ -471,10 +488,20 @@ export default function EventsPage() {
             <div>
               <h1 className="text-3xl my-auto font-bold text-gray-900 dark:text-white">Events Management</h1>
             </div>
-            <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
+            <div className="flex space-x-3">
+              <Button 
+                onClick={handleCreateSampleEvents} 
+                variant="outline" 
+                className="border-[#047d8a] text-[#047d8a] hover:bg-[#047d8a] hover:text-white"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Add Sample Events
+              </Button>
+              <Button onClick={openForm} className="bg-[#047d8a] hover:bg-[#036570] text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Event
+              </Button>
+            </div>
           </div>
 
           {/* Form Section */}
