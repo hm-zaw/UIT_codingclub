@@ -16,6 +16,24 @@ export function AuthProvider({ children }) {
     const [ userDataObj, setUserDataObj ] = useState(null);
     const [ loading, setLoading ] = useState(true); // Initialize true for initial auth check
 
+    // Handle browser close/unload events
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                // Optional: You can add additional cleanup here
+                console.log('Page hidden - user may be closing browser');
+            }
+        };
+
+        // Add event listeners
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Cleanup event listeners
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
     // Function to create activity log
     const createActivity = async (type, description, details = {}) => {
         try {
@@ -30,6 +48,21 @@ export function AuthProvider({ children }) {
             await addDoc(collection(db, 'activities'), activityData);
         } catch (error) {
             console.error('Error creating activity:', error);
+        }
+    };
+
+    // Function to check network connectivity
+    const checkNetworkConnectivity = async () => {
+        try {
+            // Try to fetch a simple resource to test connectivity
+            const response = await fetch('https://www.google.com/favicon.ico', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            });
+            return true;
+        } catch (error) {
+            console.error('Network connectivity check failed:', error);
+            return false;
         }
     };
 
@@ -106,6 +139,15 @@ export function AuthProvider({ children }) {
 
     async function login(email, password) {
         try {
+            // Check network connectivity first
+            const isNetworkAvailable = await checkNetworkConnectivity();
+            if (!isNetworkAvailable) {
+                return {
+                    success: false,
+                    message: "No internet connection detected. Please check your network connection and try again.",
+                };
+            }
+
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -126,18 +168,25 @@ export function AuthProvider({ children }) {
 
                 if (!userData.role || userData.role.trim() === "") {
                     console.warn("Role is empty or missing. Redirecting to setup.");
-                    // Redirect to the desired page if role is empty
-                    window.location.href = "/setup";
+                    // Return success with redirect info instead of using window.location.href
+                    return { success: true, redirectTo: "/setup" };
                 } else {
-                    // Role is set; redirect to dashboard
-                    window.location.href = "/dashboard";
-                    return { success: true };
+                    // Role is set; return success with dashboard redirect
+                    return { success: true, redirectTo: "/dashboard" };
                 }
             } else {
                 throw new Error("User data not found in Firestore.");
             }
         } catch (error) {
             let errorMessage = "An unknown error occurred. Please try again.";
+            
+            // Log detailed error information for debugging
+            console.error("Login Error Details:", {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+            });
+            
             switch (error.code) {
                 case 'auth/user-not-found':
                     errorMessage = "No account found with this email. Please check your email or register.";
@@ -151,19 +200,55 @@ export function AuthProvider({ children }) {
                 case 'auth/too-many-requests':
                     errorMessage = "Too many failed login attempts. Please try again later.";
                     break;
+                case 'auth/network-request-failed':
+                    errorMessage = "Network connection failed. Please check your internet connection and try again.";
+                    break;
+                case 'auth/operation-not-allowed':
+                    errorMessage = "Email/password sign-in is not enabled. Please contact support.";
+                    break;
+                case 'auth/user-disabled':
+                    errorMessage = "This account has been disabled. Please contact support.";
+                    break;
+                case 'auth/invalid-credential':
+                    errorMessage = "Invalid credentials. Please check your email and password.";
+                    break;
                 default:
                     console.error("Firebase Auth Error:", error.code, error.message);
-                    errorMessage = "Login failed. Please check your credentials and try again.";
+                    // Check if it's a network-related error even if not specifically "auth/network-request-failed"
+                    if (error.message && error.message.toLowerCase().includes('network')) {
+                        errorMessage = "Network connection failed. Please check your internet connection and try again.";
+                    } else {
+                        errorMessage = "Login failed. Please check your credentials and try again.";
+                    }
             }
             console.error("Login Error:", errorMessage);
             return { success: false, message: errorMessage };
         }
     }
 
-    function logout(){
-        setUserDataObj(null)
-        setCurrentUser(null)
-        return signOut(auth)
+    async function logout(){
+        try {
+            // Clear local state first to prevent Firestore access attempts
+            setUserDataObj(null)
+            setCurrentUser(null)
+            
+            // Clear session storage
+            sessionStorage.clear();
+            // Only clear auth-related localStorage items, not everything
+            localStorage.removeItem('firebase:authUser:');
+            
+            // Sign out from Firebase
+            await signOut(auth)
+            
+            // Redirect to login page after successful logout
+            window.location.href = '/Login'
+        } catch (error) {
+            console.error('Error during logout:', error)
+            // Even if there's an error, clear local state and redirect
+            setUserDataObj(null)
+            setCurrentUser(null)
+            window.location.href = '/Login'
+        }
     }
 
     useEffect(() => {
@@ -178,20 +263,26 @@ export function AuthProvider({ children }) {
                         setUserDataObj(null);
                     } else {
                         setCurrentUser(user);
-                        const docRef = doc(db, 'users', user.uid);
-                        const docSnap = await getDoc(docRef);
-                        if (docSnap.exists()) {
-                            setUserDataObj(docSnap.data());
-                        } else {
-                            const defaultData = { email: user.email, createdAt: new Date() };
-                            await setDoc(docRef, defaultData, { merge: true });
-                            setUserDataObj(defaultData);
+                        // Only try to fetch user data if user is still authenticated
+                        if (auth.currentUser) {
+                            const docRef = doc(db, 'users', user.uid);
+                            const docSnap = await getDoc(docRef);
+                            if (docSnap.exists()) {
+                                setUserDataObj(docSnap.data());
+                            } else {
+                                const defaultData = { email: user.email, createdAt: new Date() };
+                                await setDoc(docRef, defaultData, { merge: true });
+                                setUserDataObj(defaultData);
+                            }
                         }
                     }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
-                    setCurrentUser(null);
-                    setUserDataObj(null);
+                    // Don't set error state if it's a permission error during logout
+                    if (error.code !== 'permission-denied') {
+                        setCurrentUser(null);
+                        setUserDataObj(null);
+                    }
                 }
             } else {
                 setCurrentUser(null);

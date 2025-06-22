@@ -1,4 +1,38 @@
+'use client';
+import { useRef, useState } from 'react';
+import emailjs from '@emailjs/browser';
+
 export default function Contact() {
+  const form = useRef();
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+
+  const sendEmail = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(false);
+    setSuccess(false);
+
+    emailjs
+      .sendForm('service_coderclub', 'template_7jdmmf1', form.current, {
+        publicKey: 'jY5XldcjhcRQhGr8f',
+      })
+      .then(
+        () => {
+          setSuccess(true);
+          form.current.reset();
+        },
+        (error) => {
+          setError(true);
+          console.log('FAILED...', error.text);
+        },
+      )
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
     return (
       <div className="min-h-screen">
         {/* Hero Section */}
@@ -14,7 +48,7 @@ export default function Contact() {
         </section>
   
         {/* Contact Form Section */}
-        <section className="section bg-white">
+        <section className="section p-16 bg-white">
           <div className="container">
             <div className="grid grid-cols-2 gap-16">
               {/* Contact Information */}
@@ -23,14 +57,18 @@ export default function Contact() {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Email</h3>
-                    <p className="text-gray-600">coderclub@uit.edu.vn</p>
+                    <p className="text-gray-600">coderclub@uit.edu.mm</p>
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Location</h3>
                     <p className="text-gray-600">
-                      University of Information Technology<br />
-                      Linh Trung Ward, Thu Duc City<br />
-                      Ho Chi Minh City, Vietnam
+                      Parami Road, Hlaing Campus, Yangon, Myanmar
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Nearest Bus Stop</h3>
+                    <p className="text-gray-600">
+                      AD, Pyay Road
                     </p>
                   </div>
                   <div>
@@ -53,7 +91,7 @@ export default function Contact() {
               {/* Contact Form */}
               <div>
                 <h2 className="mb-8">Send us a Message</h2>
-                <form className="space-y-6">
+                <form ref={form} onSubmit={sendEmail} className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                       Name
@@ -61,8 +99,10 @@ export default function Contact() {
                     <input
                       type="text"
                       id="name"
+                      name="name"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="Your name"
+                      required
                     />
                   </div>
                   <div>
@@ -72,8 +112,10 @@ export default function Contact() {
                     <input
                       type="email"
                       id="email"
+                      name="email"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="your.email@example.com"
+                      required
                     />
                   </div>
                   <div>
@@ -83,8 +125,10 @@ export default function Contact() {
                     <input
                       type="text"
                       id="subject"
+                      name="subject"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="Message subject"
+                      required
                     />
                   </div>
                   <div>
@@ -93,14 +137,18 @@ export default function Contact() {
                     </label>
                     <textarea
                       id="message"
+                      name="message"
                       rows="4"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="Your message"
+                      required
                     ></textarea>
                   </div>
-                  <button type="submit" className="btn btn-primary">
-                    Send Message
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? 'Sending...' : 'Send Message'}
                   </button>
+                  {success && <p className="text-green-600 font-semibold">Your message has been sent successfully!</p>}
+                  {error && <p className="text-red-600 font-semibold">Something went wrong. Please try again.</p>}
                 </form>
               </div>
             </div>

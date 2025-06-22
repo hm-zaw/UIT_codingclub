@@ -10,7 +10,7 @@ import { DashboardHeader } from '@/components/ui/dashboard-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google';
 
@@ -34,9 +34,124 @@ export default function EventsPage() {
     imageUrl: '',
     category: 'competition'
   });
+  const [errors, setErrors] = useState({});
   const router = useRouter();
   const auth = getAuth();
   const db = getFirestore();
+
+  // Function to check if current time is after 2pm
+  const isAfter2PM = () => {
+    const now = new Date();
+    return now.getHours() >= 14; // 2pm = 14:00
+  };
+
+  // Function to get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Function to get minimum allowed date
+  const getMinDate = () => {
+    if (isAfter2PM()) {
+      // If after 2pm, minimum date is tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
+    } else {
+      // If before 2pm, minimum date is today
+      return getTodayDate();
+    }
+  };
+
+  // Function to validate location (only numbers like 213, 231, 313)
+  const validateLocation = (location) => {
+    if (!location) return true; // Allow empty for initial state
+    const numberPattern = /^\d{3}$/; // Exactly 3 digits
+    return numberPattern.test(location);
+  };
+
+  // Function to validate time (between 08:30 and 15:00)
+  const validateTime = (time) => {
+    if (!time) return true;
+    // time is in HH:MM format
+    const [hour, minute] = time.split(":").map(Number);
+    const totalMinutes = hour * 60 + minute;
+    const minMinutes = 8 * 60 + 30; // 08:30
+    const maxMinutes = 15 * 60;     // 15:00
+    return totalMinutes >= minMinutes && totalMinutes <= maxMinutes;
+  };
+
+  // Function to validate form data
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate date
+    if (formData.date) {
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate.getTime() === today.getTime() && isAfter2PM()) {
+        newErrors.date = "Today's date cannot be used after 2:00 PM. Please select tomorrow or a later date.";
+      }
+    }
+
+    // Validate location
+    if (formData.location && !validateLocation(formData.location)) {
+      newErrors.location = "Location must be a 3-digit number (e.g., 213, 231, 313)";
+    }
+
+    // Validate time
+    if (formData.time && !validateTime(formData.time)) {
+      newErrors.time = "Time must be between 08:30 and 15:00.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form data changes with validation
+  const handleFormChange = (field, value) => {
+    const updatedFormData = { ...formData, [field]: value };
+    setFormData(updatedFormData);
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+
+    // Real-time validation for location
+    if (field === 'location') {
+      if (value && !validateLocation(value)) {
+        setErrors(prev => ({ ...prev, location: "Location must be a 3-digit number (e.g., 213, 231, 313)" }));
+      } else if (value && validateLocation(value)) {
+        setErrors(prev => ({ ...prev, location: '' }));
+      }
+    }
+
+    // Real-time validation for date
+    if (field === 'date' && value) {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate.getTime() === today.getTime() && isAfter2PM()) {
+        setErrors(prev => ({ ...prev, date: "Today's date cannot be used after 2:00 PM. Please select tomorrow or a later date." }));
+      } else {
+        setErrors(prev => ({ ...prev, date: '' }));
+      }
+    }
+
+    // Real-time validation for time
+    if (field === 'time') {
+      if (value && !validateTime(value)) {
+        setErrors(prev => ({ ...prev, time: "Time must be between 08:30 and 15:00." }));
+      } else {
+        setErrors(prev => ({ ...prev, time: '' }));
+      }
+    }
+  };
 
   // Function to create activity log
   const createActivity = async (type, description, details = {}) => {
@@ -179,6 +294,12 @@ export default function EventsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return; // Stop submission if validation fails
+    }
+    
     try {
       console.log('Submitting form data:', formData); // Debug log
       
@@ -239,6 +360,7 @@ export default function EventsPage() {
         category: 'competition'
       });
       setImagePreview(null);
+      setErrors({}); // Clear errors
       fetchEvents();
     } catch (error) {
       console.error('Error saving event:', error);
@@ -387,7 +509,7 @@ export default function EventsPage() {
                     <Input
                       type="text"
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => handleFormChange('title', e.target.value)}
                       required
                       className="w-full h-11 text-base"
                       placeholder="Enter event title"
@@ -401,7 +523,7 @@ export default function EventsPage() {
                     </label>
                     <textarea
                       value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      onChange={(e) => handleFormChange('description', e.target.value)}
                       required
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -418,10 +540,16 @@ export default function EventsPage() {
                       <Input
                         type="date"
                         value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        onChange={(e) => handleFormChange('date', e.target.value)}
                         required
+                        min={getMinDate()}
                         className="w-full h-11 text-base"
                       />
+                      {errors.date ? (
+                        <div className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4" /> {errors.date}
+                        </div>
+                      ) : null}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -430,10 +558,17 @@ export default function EventsPage() {
                       <Input
                         type="time"
                         value={formData.time}
-                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                        onChange={(e) => handleFormChange('time', e.target.value)}
                         required
+                        min="08:30"
+                        max="15:00"
                         className="w-full h-11 text-base"
                       />
+                      {errors.time ? (
+                        <div className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4" /> {errors.time}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -445,11 +580,16 @@ export default function EventsPage() {
                     <Input
                       type="text"
                       value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      onChange={(e) => handleFormChange('location', e.target.value)}
                       required
                       className="w-full h-11 text-base"
-                      placeholder="Enter event location"
+                      placeholder="Enter event location (e.g., 213)"
                     />
+                    {errors.location ? (
+                      <div className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                        <AlertCircle className="h-4 w-4" /> {errors.location}
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Max Participants and Category */}
@@ -461,7 +601,7 @@ export default function EventsPage() {
                       <Input
                         type="number"
                         value={formData.maxParticipants}
-                        onChange={(e) => setFormData({...formData, maxParticipants: e.target.value})}
+                        onChange={(e) => handleFormChange('maxParticipants', e.target.value)}
                         required
                         min="1"
                         className="w-full h-11 text-base"
@@ -474,7 +614,7 @@ export default function EventsPage() {
                       </label>
                       <select
                         value={formData.category}
-                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        onChange={(e) => handleFormChange('category', e.target.value)}
                         className="w-full h-11 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="competition">Competition</option>

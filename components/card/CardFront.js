@@ -13,6 +13,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  weight: "400",
 });
 
 const dotGothic16 = DotGothic16({
@@ -92,7 +93,7 @@ export default function Cardfront({ userData }) {
         drag
         dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
         whileTap={{ cursor: 'grabbing' }}
-        className="max-sm:bottom-12 flex justify-center items-center max-sm:w-[298px] w-[530px] max-sm:h-[183px] h-[325px] bg-indigo-200 max-sm:rounded-[15px] rounded-[18px] max-sm:border-[1.5px] border-[2px] border-black max-sm:pl-[19px] pl-[33px] max-sm:pr-[27px] pr-[48px] max-sm:pt-[23px] pt-[42px] max-sm:pb-[31px] pb-[56px] cursor-grab relative text-black"
+        className="flex justify-center items-center max-sm:w-[298px] w-[530px] max-sm:h-[183px] h-[325px] bg-indigo-200 max-sm:rounded-[15px] rounded-[18px] max-sm:border-[1.5px] border-[2px] border-black max-sm:pl-[19px] pl-[33px] max-sm:pr-[27px] pr-[48px] max-sm:pt-[23px] pt-[42px] max-sm:pb-[31px] pb-[56px] cursor-grab relative text-black"
       >
 
           {/* Left Section - Photo & Codes */}
@@ -117,35 +118,37 @@ export default function Cardfront({ userData }) {
 
           {/* Right Section - Student Info */}
           <div className="flex flex-col justify-center w-2/3 max-sm:pl-5 pl-8">
-            <h1 className="max-sm:text-[28px] max-sm:font-bold max-sm:text-gray-900 text-[49px] text-nowrap flex items-center">Student ID</h1>
+            <h1 className={`${dotGothic16.className} my-auto max-sm:text-[28px] max-sm:font-bold max-sm:text-gray-900 text-[49px] text-nowrap flex items-center`}>Student ID</h1>
 
             {/* Dotted/Dashed Line */}
             <div className="w-full border-t-[2px] border-dashed border-black max-sm:my-2 my-5" />
 
             {/* Info Container */}
-            <div className="grid grid-cols-2 gap-4 max-sm:text-[15px] text-[20px]">
-
-              <div className="flex flex-col justify-between max-w-[200px]">
-                <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>
-                  Name
-                </span>
-                <Marquee>{user.name}</Marquee>
+            <div className="flex flex-col max-sm:text-[15px] text-[20px] max-sm:gap-y-1 gap-y-2">
+              <div className="flex">
+                <div className="flex flex-col w-1/2 pr-2">
+                  <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>
+                    Name
+                  </span>
+                  <Marquee>{user.name}</Marquee>
+                </div>
+                <div className="flex flex-col w-1/2 pl-2">
+                  <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Roll No.</span>
+                  {/* <span className='max-sm:text-[13px] text-[22px]'>TNT 1770</span> */}
+                  <Marquee>{user.rollNo}</Marquee>
+                </div>
               </div>
-
-              <div className="flex flex-col justify-between">
-                <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Roll No.</span>
-                {/* <span className='max-sm:text-[13px] text-[22px]'>TNT 1770</span> */}
-                <Marquee>{user.rollNo}</Marquee>
-              </div>
-              <div className="flex flex-col justify-between">
-                <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Year</span>
-                {/* <span className='max-sm:text-[13px] text-[22px]'>3RD VI</span> */}
-                <Marquee>{user.year}</Marquee>
-              </div>
-              <div className="flex flex-col justify-between">
-                <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Major</span>
-                {/* <span className='max-sm:text-[13px] text-[22px]'>COMP.SCI</span> */}
-                <Marquee>{user.major}</Marquee>
+              <div className="flex">
+                <div className="flex flex-col w-1/2 pr-2">
+                  <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Year</span>
+                  {/* <span className='max-sm:text-[13px] text-[22px]'>3RD VI</span> */}
+                  <Marquee>{user.year}</Marquee>
+                </div>
+                <div className="flex flex-col w-1/2 pl-2">
+                  <span className={`${geistMono.className} font-light max-sm:text-[8px] text-sm text-nowrap`}>Major</span>
+                  {/* <span className='max-sm:text-[13px] text-[22px]'>COMP.SCI</span> */}
+                  <Marquee>{user.major}</Marquee>
+                </div>
               </div>
             </div>
           </div>

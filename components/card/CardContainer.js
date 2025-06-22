@@ -83,10 +83,10 @@ export default function CardContainer({ userData }) {
   };
 
   return (
-    <div className='w-full bg-transparent h-screen flex items-center justify-center'>
+    <div className='w-full bg-transparent flex justify-center'>
       <div className="flex flex-col items-center">
         <div ref={cardRef}
-          className="relative w-[530px] h-[325px] [perspective:2000px] max-sm:w-[298px] max-sm:h-[183px]"
+          className="relative w-[530px] h-[325px] [perspective:2000px] max-sm:w-[320px] max-sm:h-[183px]"
         >
           <motion.div
             animate={{ rotateY: isFlipped ? 180 : 0 }}

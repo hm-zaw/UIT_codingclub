@@ -70,6 +70,12 @@ export default function AdminDashboard() {
   // Function to fetch real-time activities from all collections
   const fetchRealTimeActivities = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping activities fetch');
+        return;
+      }
+
       console.log('Fetching real-time activities from all collections...');
       
       // Get activities from all collections
@@ -177,33 +183,55 @@ export default function AdminDashboard() {
       setActivities(recentActivities);
     } catch (error) {
       console.error('Error fetching real-time activities:', error);
-      setActivities([]);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setActivities([]);
+      }
     }
   };
 
   // Real-time activities listener for all collections
   useEffect(() => {
-    if (!showLoading) {
+    if (!showLoading && currentUser) {
       try {
         console.log('Setting up real-time activities listeners...');
         
         // Set up listeners for all collections
         const unsubscribeUsers = onSnapshot(collection(db, 'users'), () => {
           fetchRealTimeActivities();
+        }, (error) => {
+          console.error('Error in users listener:', error);
+          // Don't throw error for permission denied during logout
+          if (error.code !== 'permission-denied') {
+            console.error('Users listener error:', error);
+          }
         });
         
         const unsubscribeCourses = onSnapshot(collection(db, 'courses'), () => {
           fetchRealTimeActivities();
+        }, (error) => {
+          console.error('Error in courses listener:', error);
+          // Don't throw error for permission denied during logout
+          if (error.code !== 'permission-denied') {
+            console.error('Courses listener error:', error);
+          }
         });
         
         const unsubscribeEvents = onSnapshot(collection(db, 'events'), () => {
           fetchRealTimeActivities();
+        }, (error) => {
+          console.error('Error in events listener:', error);
+          // Don't throw error for permission denied during logout
+          if (error.code !== 'permission-denied') {
+            console.error('Events listener error:', error);
+          }
         });
 
         // Initial fetch
         fetchRealTimeActivities();
 
         return () => {
+          console.log('Cleaning up real-time activities listeners...');
           unsubscribeUsers();
           unsubscribeCourses();
           unsubscribeEvents();
@@ -213,7 +241,7 @@ export default function AdminDashboard() {
         setActivities([]);
       }
     }
-  }, [showLoading]);
+  }, [showLoading, currentUser]);
 
   // Function to get activity icon and color
   const getActivityConfig = (type) => {
@@ -291,6 +319,12 @@ export default function AdminDashboard() {
 
   const fetchUserCount = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping user count fetch');
+        return;
+      }
+
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('role', '==', 'student'));
       const querySnapshot = await getDocs(q);
@@ -303,11 +337,22 @@ export default function AdminDashboard() {
       setUserGrowth(growth);
     } catch (error) {
       console.error('Error fetching user count:', error);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setUserCount(0);
+        setUserGrowth(0);
+      }
     }
   };
 
   const fetchMentorCount = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping mentor count fetch');
+        return;
+      }
+
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('role', '==', 'mentor'));
       const querySnapshot = await getDocs(q);
@@ -319,11 +364,22 @@ export default function AdminDashboard() {
       setMentorGrowth(growth);
     } catch (error) {
       console.error('Error fetching mentor count:', error);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setMentorCount(0);
+        setMentorGrowth(0);
+      }
     }
   };
 
   const fetchWorkshopCount = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping workshop count fetch');
+        return;
+      }
+
       const coursesRef = collection(db, 'courses');
       const querySnapshot = await getDocs(coursesRef);
       const today = new Date();
@@ -346,11 +402,22 @@ export default function AdminDashboard() {
       setWorkshopGrowth(growth);
     } catch (error) {
       console.error('Error fetching workshop count:', error);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setWorkshopCount(0);
+        setWorkshopGrowth(0);
+      }
     }
   };
 
   const fetchEventCount = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping event count fetch');
+        return;
+      }
+
       const eventsRef = collection(db, 'events');
       const querySnapshot = await getDocs(eventsRef);
       const today = new Date();
@@ -373,11 +440,22 @@ export default function AdminDashboard() {
       setEventGrowth(growth);
     } catch (error) {
       console.error('Error fetching event count:', error);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setEventCount(0);
+        setEventGrowth(0);
+      }
     }
   };
 
   const fetchStudentList = async () => {
     try {
+      // Check if user is still authenticated before making Firestore calls
+      if (!currentUser) {
+        console.log('User not authenticated, skipping student list fetch');
+        return;
+      }
+
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('role', '==', 'student'));
       const querySnapshot = await getDocs(q);
@@ -388,6 +466,10 @@ export default function AdminDashboard() {
       setStudentList(students);
     } catch (error) {
       console.error('Error fetching student list:', error);
+      // Don't set error state if it's a permission error during logout
+      if (error.code !== 'permission-denied') {
+        setStudentList([]);
+      }
     }
   };
 

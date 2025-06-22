@@ -9,6 +9,16 @@ export default function Logout() {
     const { logout, currentUser } = useAuth()
     const pathname = usePathname()
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Error logging out:', error);
+            // Even if there's an error, try to redirect to login
+            window.location.href = '/Login';
+        }
+    };
+
     if (!currentUser) {
         return null
     }
@@ -22,6 +32,6 @@ export default function Logout() {
     }
 
     return (
-        <Button text='Logout' clickHandler={logout} />
+        <Button text='Logout' clickHandler={handleLogout} />
     )
 }

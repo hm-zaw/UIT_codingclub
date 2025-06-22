@@ -1,7 +1,6 @@
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
-import { ThemeProvider } from "@/context/ThemeContext";
 import GlobalLayout from "@/components/GlobalLayout";
 import { DM_Sans, Lexend } from 'next/font/google';
 
@@ -12,21 +11,21 @@ const lexend = Lexend({ subsets: ['latin'], display: 'swap', variable: '--font-l
 export const metadata = {
   title: "UIT Coding Club",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logo2.png',
+    shortcut: '/logo2.png',
+    apple: '/logo2.png',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${lexend.variable}`}>
-      <body className={`font-lexend antialiased text-slate-800 dark:text-slate-200 bg-white dark:bg-gray-950 w-full text-sm sm:text-base min-h-screen flex flex-col justify-center`}>
-        <ThemeProvider>
-          <AuthProvider>
-            <GlobalLayout>
-              {children}
-            </GlobalLayout>
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="font-lexend antialiased text-slate-800 bg-white w-full text-sm sm:text-base min-h-screen flex flex-col justify-center">
+        <AuthProvider>
+          <GlobalLayout>
+            {children}
+          </GlobalLayout>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Button from './Button'
 import { Montserrat, Fugaz_One } from 'next/font/google'
 import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['400'] })
 const fugaz = Fugaz_One({ subsets: ["latin"], weight: ['400'] })
@@ -16,6 +17,7 @@ export default function Login(props) {
   const [isRegister, setIsRegister] = useState(false)
   const [authenticating, setAuthenticating] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')  
+  const router = useRouter()
 
   useEffect(() => {
     setIsRegister(state);
@@ -44,6 +46,12 @@ export default function Login(props) {
       } else {
         console.log('Logging in existing user')
         result = await login(email, password)
+        
+        // Handle redirect if login was successful
+        if (result.success && result.redirectTo) {
+          router.push(result.redirectTo)
+          return
+        }
       }
 
       if (!result.success) {
@@ -97,6 +105,8 @@ export default function Login(props) {
           {isRegister ? 'Sign in' : 'Sign up'}
         </button>
       </p>
+
+      
     </div>
   )
 }

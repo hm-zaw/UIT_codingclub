@@ -43,6 +43,8 @@ export function DashboardHeader() {
       await logout();
     } catch (error) {
       console.error('Error logging out:', error);
+      // Even if there's an error, try to redirect to login
+      window.location.href = '/Login';
     }
   };
 
@@ -55,7 +57,6 @@ export function DashboardHeader() {
           </p>
         </div>
         <div className="ml-auto flex items-center space-x-4">
-          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">

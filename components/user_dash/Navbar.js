@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion'; // Import motion and hooks
 import Logo from './Logo';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 
 const navigationItems = [
-  { name: 'Home', href: '/user-dashboard' },
   { name: 'About', href: '/about' },
   { name: 'Events', href: '/events' },
   { name: 'Resources', href: '/resources' },
@@ -24,6 +24,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { scrollY } = useScroll(); // Get scroll Y position
   const [hidden, setHidden] = useState(false);
+  const { currentUser } = useAuth(); // Get current user from auth context
+  
   const [prevScrollY, setPrevScrollY] = useState(0);
 
   useEffect(() => {
@@ -74,6 +76,13 @@ export default function Navbar() {
 
           {/* Desktop Navigation on the right */}
           <div className="hidden md:flex items-center space-x-3 sm:space-x-3.5 md:space-x-4">
+            {/* Conditional Home link */}
+            <Link
+              href={currentUser ? '/user-dashboard' : '/'}
+              className="text-gray-600 hover:text-[#387d8a] px-3 py-2 text-base font-medium transition-colors duration-200"
+            >
+              Home
+            </Link>
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
@@ -161,6 +170,14 @@ export default function Navbar() {
             </button>
           </div>
           <div className="px-2 pt-2 pb-3 space-y-1">
+            {/* Conditional Home link for mobile */}
+            <Link
+              href={currentUser ? '/user-dashboard' : '/'}
+              onClick={() => setIsOpen(false)} // Close menu on navigation
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#387d8a] hover:bg-gray-50 transition-colors duration-200"
+            >
+              Home
+            </Link>
             {navigationItems.map((item) => (
               <Link
                 key={item.name}

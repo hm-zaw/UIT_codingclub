@@ -8,6 +8,8 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { FaGraduationCap, FaCode, FaUsers } from 'react-icons/fa';
 import Hero from '@/components/Hero';
+import { CardContainer, CardBody, CardItem } from '@/components/ui/3d-card';
+import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
 
 const monstserrat = Montserrat({ subsets: ['latin'], weight: ['500'] });
 
@@ -171,20 +173,22 @@ export default function Dashboard() {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero-section pt-32 md:pt-28 lg:pt-0">
-        <div className="container">
-          <div className="w-full">
-            <h1 className="mb-6 text-4xl md:text-5xl lg:text-6xl">
-              Welcome to <span className="text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-[#387d8a] to-[#2c5f6a] bg-clip-text text-transparent">UIT Coder Club</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Empowering students through code, collaboration, and innovation
-            </p>
-            <button className="btn btn-primary">
-              Check Events
-            </button>
+      <section className="hero-section">
+        <BackgroundBeamsWithCollision className="min-h-screen">
+          <div className="container">
+            <div className="w-full relative z-10">
+              <h1 className="mb-6 text-4xl md:text-5xl lg:text-6xl">
+                Welcome to <span className="text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-[#387d8a] to-[#2c5f6a] bg-clip-text text-transparent">UIT Coder Club</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Empowering students through code, collaboration, and innovation
+              </p>
+              <button className="btn btn-primary">
+                Check Events
+              </button>
+            </div>
           </div>
-        </div>
+        </BackgroundBeamsWithCollision>
       </section>
 
       {/* Latest Announcements Section */}
@@ -209,54 +213,59 @@ export default function Dashboard() {
 
               <div className="px-4 sm:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {latestAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="w-full h-auto md:h-[240px] overflow-hidden rounded-2xl border-2 border-[#333333] drop-shadow-[8px_8px_0px_#387d8a] flex flex-col"
-                  >
-                    {/* Window Frame Header */}
-                    <div className="flex flex-row p-1.5 bg-gray-100 border-b-2 border-[#333333]">
-                      <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#ff605c]"></div>
-                      <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#ffbd44]"></div>
-                      <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#00ca4e]"></div>
-                    </div>
+                  <CardContainer key={announcement.id} className="w-full" containerClassName="py-0">
+                    <CardBody className="w-full h-auto md:h-[240px] overflow-hidden rounded-2xl border-2 border-[#333333] drop-shadow-[8px_8px_0px_#387d8a] flex flex-col bg-white">
+                      {/* Window Frame Header */}
+                      <CardItem translateZ="20" className="flex flex-row p-1.5 bg-gray-100 border-b-2 border-[#333333]">
+                        <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#ff605c]"></div>
+                        <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#ffbd44]"></div>
+                        <div className="rounded-full w-2.5 h-2.5 mx-1 bg-[#00ca4e]"></div>
+                      </CardItem>
 
-                    {/* Card Content */}
-                    <div className="bg-white flex-1 flex flex-col sm:flex-row">
-                      {/* Image */}
-                      <div className="relative w-full sm:w-2/5 h-32 sm:h-auto">
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#387d8a]/20 to-transparent"></div>
-                        <img
-                          src={announcement.image}
-                          alt={announcement.title}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Type Badge */}
-                        <div className="absolute top-2 left-2">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/90 text-[#387d8a]">
-                            {announcement.type}
-                          </span>
+                      {/* Card Content */}
+                      <div className="bg-white flex-1 flex flex-col sm:flex-row">
+                        {/* Image */}
+                        <CardItem translateZ="50" className="relative w-full sm:w-2/5 h-32 sm:h-auto">
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#387d8a]/20 to-transparent"></div>
+                          <img
+                            src={announcement.image}
+                            alt={announcement.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Type Badge */}
+                          <div className="absolute top-2 left-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white/90 text-[#387d8a]">
+                              {announcement.type}
+                            </span>
+                          </div>
+                        </CardItem>
+
+                        {/* Content */}
+                        <div className="w-2/5 sm:w-3/5 p-3 flex flex-col">
+                          {/* Title and Date */}
+                          <CardItem translateZ="60" className="text-sm sm:text-base font-bold text-gray-900 mb-0.5 line-clamp-1">
+                            {announcement.title}
+                          </CardItem>
+                          <CardItem translateZ="40" className="text-xs text-gray-500 mb-1">
+                            {announcement.date}
+                          </CardItem>
+
+                          {/* Description */}
+                          <CardItem translateZ="30" className="text-xs text-gray-600 mb-2 line-clamp-2 flex-1">
+                            {announcement.description}
+                          </CardItem>
+
+                          {/* Read More Button */}
+                          <CardItem translateZ="80" as="button" className="inline-flex items-center text-[#387d8a] hover:text-[#2c5f6a] font-medium transition-colors duration-200 mt-auto text-xs">
+                            Read More
+                            <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </CardItem>
                         </div>
                       </div>
-
-                      {/* Content */}
-                      <div className="w-2/5 sm:w-3/5 p-3 flex flex-col">
-                        {/* Title and Date */}
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-0.5 line-clamp-1">{announcement.title}</h3>
-                        <p className="text-xs text-gray-500 mb-1">{announcement.date}</p>
-
-                        {/* Description */}
-                        <p className="text-xs text-gray-600 mb-2 line-clamp-2 flex-1">{announcement.description}</p>
-
-                        {/* Read More Button */}
-                        <button className="inline-flex items-center text-[#387d8a] hover:text-[#2c5f6a] font-medium transition-colors duration-200 mt-auto text-xs">
-                          Read More
-                          <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    </CardBody>
+                  </CardContainer>
                 ))}
               </div>
             </div>
