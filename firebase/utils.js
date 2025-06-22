@@ -138,7 +138,8 @@ export const createSampleEvents = async () => {
             location: "Computer Lab 101",
             type: "Workshop",
             maxParticipants: 30,
-            currentParticipants: 15
+            currentParticipants: 15,
+            imageUrl: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop"
         },
         {
             title: "Hackathon: Build Something Amazing",
@@ -149,7 +150,8 @@ export const createSampleEvents = async () => {
             location: "Main Campus Hall",
             type: "Hackathon",
             maxParticipants: 100,
-            currentParticipants: 45
+            currentParticipants: 45,
+            imageUrl: "https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?q=80&w=800&auto=format&fit=crop"
         },
         {
             title: "Web Development Bootcamp Day 1",
@@ -160,7 +162,8 @@ export const createSampleEvents = async () => {
             location: "Computer Lab 102",
             type: "Bootcamp",
             maxParticipants: 25,
-            currentParticipants: 18
+            currentParticipants: 18,
+            imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop"
         },
         {
             title: "Web Development Bootcamp Day 2",
@@ -171,7 +174,8 @@ export const createSampleEvents = async () => {
             location: "Computer Lab 102",
             type: "Bootcamp",
             maxParticipants: 25,
-            currentParticipants: 20
+            currentParticipants: 20,
+            imageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop"
         },
         {
             title: "Guest Speaker: AI in Modern Development",
@@ -182,7 +186,8 @@ export const createSampleEvents = async () => {
             location: "Auditorium A",
             type: "Lecture",
             maxParticipants: 200,
-            currentParticipants: 120
+            currentParticipants: 120,
+            imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=800&auto=format&fit=crop"
         },
         {
             title: "Code Review Session",
@@ -194,6 +199,7 @@ export const createSampleEvents = async () => {
             type: "Discussion",
             maxParticipants: 20,
             currentParticipants: 8
+            // No imageUrl for this event to show fallback design
         }
     ];
 
@@ -205,6 +211,56 @@ export const createSampleEvents = async () => {
         return true;
     } catch (error) {
         console.error('Error creating sample events:', error);
+        return false;
+    }
+};
+
+// Create sample events with images for testing (call this from admin dashboard)
+export const createSampleEventsWithImages = async () => {
+    const sampleEventsWithImages = [
+        {
+            title: "React Workshop: Advanced Concepts",
+            shortDescription: "Master advanced React patterns and state management",
+            fullDescription: "Take your React skills to the next level with advanced concepts like Context API, Custom Hooks, and Performance Optimization.",
+            date: new Date(2025, 6, 10), // July 10, 2025
+            time: "1:00 PM - 4:00 PM",
+            location: "213",
+            category: "workshop",
+            maxParticipants: 25,
+            imageUrl: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            title: "Annual Coding Competition",
+            shortDescription: "Showcase your programming skills in our annual competition",
+            fullDescription: "Compete with fellow students in our annual coding competition. Solve challenging problems and win exciting prizes!",
+            date: new Date(2025, 6, 15), // July 15, 2025
+            time: "9:00 AM - 5:00 PM",
+            location: "231",
+            category: "competition",
+            maxParticipants: 50,
+            imageUrl: "https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            title: "AI & Machine Learning Seminar",
+            shortDescription: "Introduction to AI and ML concepts for beginners",
+            fullDescription: "Learn the fundamentals of Artificial Intelligence and Machine Learning in this comprehensive seminar.",
+            date: new Date(2025, 6, 20), // July 20, 2025
+            time: "2:00 PM - 4:00 PM",
+            location: "313",
+            category: "seminar",
+            maxParticipants: 40,
+            imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=800&auto=format&fit=crop"
+        }
+    ];
+
+    try {
+        for (const event of sampleEventsWithImages) {
+            await addEvent(event);
+        }
+        console.log('Sample events with images created successfully');
+        return true;
+    } catch (error) {
+        console.error('Error creating sample events with images:', error);
         return false;
     }
 };
@@ -327,5 +383,35 @@ export const isUserRegisteredForEvent = async (userId, eventId) => {
     } catch (error) {
         console.error('Error checking event registration:', error);
         return false;
+    }
+};
+
+// Get all workshops from Firestore
+export const getAllWorkshops = async () => {
+    try {
+        const coursesRef = collection(db, 'courses');
+        const q = query(coursesRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const workshops = [];
+        querySnapshot.forEach((doc) => {
+            const workshopData = doc.data();
+            // Convert Firestore Timestamp to Date if needed
+            if (workshopData.startDate && typeof workshopData.startDate.toDate === 'function') {
+                workshopData.startDate = workshopData.startDate.toDate();
+            }
+            if (workshopData.endDate && typeof workshopData.endDate.toDate === 'function') {
+                workshopData.endDate = workshopData.endDate.toDate();
+            }
+            workshops.push({
+                id: doc.id,
+                ...workshopData
+            });
+        });
+        
+        return workshops;
+    } catch (error) {
+        console.error('Error getting workshops:', error);
+        return [];
     }
 }; 

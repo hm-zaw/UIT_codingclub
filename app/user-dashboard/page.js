@@ -10,7 +10,8 @@ import { FaGraduationCap, FaCode, FaUsers } from 'react-icons/fa';
 import Hero from '@/components/Hero';
 import { CardContainer, CardBody, CardItem } from '@/components/ui/3d-card';
 import { BackgroundBeamsWithCollision } from '@/components/ui/background-beams-with-collision';
-import { getAllEvents } from '@/firebase/utils';
+import { getAllEvents, getAllWorkshops } from '@/firebase/utils';
+import Image from 'next/image';
 
 const monstserrat = Montserrat({ subsets: ['latin'], weight: ['500'] });
 
@@ -90,13 +91,19 @@ export default function Dashboard() {
   ];
 
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [upcomingWorkshops, setUpcomingWorkshops] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUpcomingEvents = async () => {
+    const fetchUpcomingEventsAndWorkshops = async () => {
       try {
         setEventsLoading(true);
-        const allEvents = await getAllEvents();
+        
+        // Fetch both events and workshops
+        const [allEvents, allWorkshops] = await Promise.all([
+          getAllEvents(),
+          getAllWorkshops()
+        ]);
         
         // Filter for upcoming events (events with dates >= today)
         const now = new Date();
@@ -112,16 +119,39 @@ export default function Dashboard() {
           return dateA - dateB;
         }); // Sort by date
 
+        // Filter for upcoming workshops (workshops with start dates >= today or no end date)
+        const filteredWorkshops = allWorkshops.filter(workshop => {
+          if (!workshop.startDate) return false; // Skip workshops without start date
+          const startDate = workshop.startDate instanceof Date ? workshop.startDate : new Date(workshop.startDate);
+          startDate.setHours(0, 0, 0, 0);
+          
+          // If workshop has end date, check if it's not ended yet
+          if (workshop.endDate) {
+            const endDate = workshop.endDate instanceof Date ? workshop.endDate : new Date(workshop.endDate);
+            endDate.setHours(0, 0, 0, 0);
+            return startDate >= now && endDate >= now;
+          }
+          
+          // If no end date, just check if start date is in the future
+          return startDate >= now;
+        }).sort((a, b) => {
+          const dateA = a.startDate instanceof Date ? a.startDate : new Date(a.startDate);
+          const dateB = b.startDate instanceof Date ? b.startDate : new Date(b.startDate);
+          return dateA - dateB;
+        }); // Sort by start date
+
         setUpcomingEvents(filteredEvents);
+        setUpcomingWorkshops(filteredWorkshops);
       } catch (error) {
-        console.error('Error fetching upcoming events:', error);
+        console.error('Error fetching upcoming events and workshops:', error);
         setUpcomingEvents([]);
+        setUpcomingWorkshops([]);
       } finally {
         setEventsLoading(false);
       }
     };
 
-    fetchUpcomingEvents();
+    fetchUpcomingEventsAndWorkshops();
   }, []);
 
 
@@ -313,7 +343,7 @@ export default function Dashboard() {
                 What's up?
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 md:mb-8 font-medium">
-                There's always something <span className="text-[#387d8a]">new</span> to look forward to. Keep an eye out for the latest Computing Club <span className="text-[#387d8a]">events</span>!
+                There's always something <span className="text-[#387d8a]">new</span> to look forward to. Keep an eye out for the latest Computing Club <span className="text-[#387d8a]">events and workshops</span>!
               </p>
               <a href="/events" className="inline-flex items-center px-4 py-2 mb-4 sm:px-6 sm:py-3 rounded-lg bg-[#387d8a] text-white font-medium hover:bg-[#2c5f6a] transition-colors duration-200">
                 View Events
@@ -329,45 +359,154 @@ export default function Dashboard() {
       {/* Upcoming Events Section */}
       <section className="section bg-white py-2 my-24">
         <div className="container">
-          <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-12">Upcoming Events</h2>
+          <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-12">Upcoming Events & Workshops</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {eventsLoading ? (
               <div className="col-span-full text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#387d8a] mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading upcoming events...</p>
+                <p className="text-gray-600">Loading upcoming events and workshops...</p>
               </div>
-            ) : upcomingEvents.length > 0 ? (
-              upcomingEvents.slice(0, 2).map(event => {
-                const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
-                const formattedDate = eventDate.toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                });
-                
-                return (
-                  <div key={event.id} className="card">
-                    <div className="text-[#387d8a] text-sm mb-1">
-                      📅 {formattedDate} | ⏰ {event.time || 'TBD'}
+            ) : (upcomingEvents.length > 0 || upcomingWorkshops.length > 0) ? (
+              // Combine events and workshops, add type identifier, and sort by date
+              [...upcomingEvents.map(event => ({ ...event, type: 'event' })), 
+               ...upcomingWorkshops.map(workshop => ({ ...workshop, type: 'workshop' }))]
+                .sort((a, b) => {
+                  const dateA = a.type === 'event' ? 
+                    (a.date instanceof Date ? a.date : new Date(a.date)) :
+                    (a.startDate instanceof Date ? a.startDate : new Date(a.startDate));
+                  const dateB = b.type === 'event' ? 
+                    (b.date instanceof Date ? b.date : new Date(b.date)) :
+                    (b.startDate instanceof Date ? b.startDate : new Date(b.startDate));
+                  return dateA - dateB;
+                })
+                .slice(0, 4) // Show up to 4 items (2 rows of 2)
+                .map(item => {
+                  const isEvent = item.type === 'event';
+                  const itemDate = isEvent ? 
+                    (item.date instanceof Date ? item.date : new Date(item.date)) :
+                    (item.startDate instanceof Date ? item.startDate : new Date(item.startDate));
+                  
+                  const formattedDate = itemDate.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  });
+                  
+                  return (
+                    <div key={`${item.type}-${item.id}`} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 group">
+                      {/* Event/Workshop Image */}
+                      {item.imageUrl ? (
+                        <div className="relative h-48 w-full overflow-hidden">
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={false}
+                            onError={(e) => {
+                              // Hide the image container on error
+                              e.target.parentElement.style.display = 'none';
+                            }}
+                          />
+                          {/* Gradient overlay for better text readability */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                          {/* Date badge */}
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 shadow-sm">
+                            <div className="text-[#387d8a] text-xs font-semibold">
+                              {formattedDate}
+                            </div>
+                          </div>
+                          {/* Type badge */}
+                          <div className="absolute top-3 right-3 bg-[#387d8a]/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm">
+                            <div className="text-white text-xs font-semibold">
+                              {isEvent ? 'Event' : 'Workshop'}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative h-48 w-full bg-gradient-to-br from-[#387d8a]/10 to-[#2c5f6a]/10 flex items-center justify-center group-hover:from-[#387d8a]/15 group-hover:to-[#2c5f6a]/15 transition-all duration-300">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-[#387d8a]/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                              <svg className="w-8 h-8 text-[#387d8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-[#387d8a] text-sm font-medium">{isEvent ? 'Event' : 'Workshop'} Image</p>
+                            <p className="text-[#387d8a]/70 text-xs mt-1">No image available</p>
+                          </div>
+                          {/* Date badge for no-image case */}
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 shadow-sm">
+                            <div className="text-[#387d8a] text-xs font-semibold">
+                              {formattedDate}
+                            </div>
+                          </div>
+                          {/* Type badge for no-image case */}
+                          <div className="absolute top-3 right-3 bg-[#387d8a]/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm">
+                            <div className="text-white text-xs font-semibold">
+                              {isEvent ? 'Event' : 'Workshop'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Event/Workshop Content */}
+                      <div className="p-6">
+                        {/* Time and location info */}
+                        <div className="flex items-center gap-3 text-[#387d8a] text-sm mb-3">
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {isEvent ? (item.time || 'TBD') : (item.schedule || 'TBD')}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {isEvent ? (item.location || 'Location TBD') : (item.location || 'Location TBD')}
+                          </span>
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2 group-hover:text-[#387d8a] transition-colors duration-200">
+                          {item.title}
+                        </h3>
+                        
+                        {/* Description */}
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                          {isEvent ? 
+                            (item.shortDescription || item.description || 'No description available') :
+                            (item.description || 'No description available')
+                          }
+                        </p>
+                        
+                        {/* Action button */}
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>Max: {isEvent ? (item.maxParticipants || 'Unlimited') : (item.maxStudents || 'Unlimited')} participants</span>
+                          </div>
+                          <a 
+                            href={isEvent ? "/events" : "/resources"} 
+                            className="inline-flex items-center px-4 py-2 bg-[#387d8a] text-white text-sm font-medium rounded-lg hover:bg-[#2c5f6a] transition-all duration-200 group-hover:shadow-md"
+                          >
+                            Learn More
+                            <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold mb-3">{event.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {event.shortDescription || event.description || 'No description available'}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        📍 {event.location || 'Location TBD'}
-                      </span>
-                      <a href="/events" className="btn btn-primary text-sm px-4 py-2">
-                        Learn More
-                      </a>
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })
             ) : (
-              <p className="text-center text-base text-gray-500 col-span-full">No upcoming events at the moment. Check back soon!</p>
+              <p className="text-center text-base text-gray-500 col-span-full">No upcoming events or workshops at the moment. Check back soon!</p>
             )}
           </div>
         </div>

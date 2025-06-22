@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar, Plus, Edit, Trash2, Users, MapPin, Clock, CalendarDays, X, Upload, Image as ImageIcon, AlertCircle, Database, Menu } from 'lucide-react';
 import Image from "next/image";
 import { Montserrat } from 'next/font/google';
-import { createSampleEvents } from '@/firebase/utils';
+import { createSampleEvents, createSampleEventsWithImages } from '@/firebase/utils';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ['500'] });
 

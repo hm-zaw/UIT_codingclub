@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Plus, Database, CheckCircle, Clock, MapPin } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Events() {
   // State to manage the selected date and events for that date
@@ -473,54 +474,79 @@ export default function Events() {
                         });
                         
                         return (
-                          <div key={event.id} className="border-b border-gray-100 pb-4 last:border-0">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="text-xl font-bold text-[#387d8a] mb-1">{event.title}</h4>
-                                <p className="text-sm text-gray-600 mb-2">
-                                  📅 {formattedDate} | ⏰ {event.time} | 📍 {event.location}
-                                </p>
-                                <span className="inline-block mb-2 px-2 py-1 text-xs font-medium bg-[#387d8a]/10 text-[#387d8a] rounded-full">
-                                  {event.category}
-                                </span>
-                                <p className="text-sm text-gray-500 mb-2">
-                                  👥 {event.currentParticipants || 0}/{event.maxParticipants || '∞'} participants
-                                </p>
-                                {event.description && (
-                                  <p className="text-base text-gray-700 whitespace-pre-wrap">{event.description}</p>
-                                )}
-                              </div>
-                              <div className="ml-4 flex-shrink-0">
-                                {userRegistrations[event.id] ? (
-                                  <span className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold shadow-md text-sm">
-                                    Registered ✓
-                                  </span>
-                                ) : !registrationConfirm[event.id] ? (
-                                  <button
-                                    onClick={() => handleRegisterClick(event.id)}
-                                    disabled={registrationLoading[event.id]}
-                                    className="px-6 py-2.5 bg-[#387d8a] text-white rounded-lg font-semibold hover:bg-[#2c5f6a] transition-colors shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {registrationLoading[event.id] ? 'Processing...' : 'Register'}
-                                  </button>
-                                ) : (
-                                  <div className="flex flex-col space-y-2">
-                                    <button
-                                      onClick={() => handleConfirmRegistration(event)}
-                                      disabled={registrationLoading[event.id]}
-                                      className="px-6 py-2.5 bg-[#047d8a] hover:bg-[#036570] text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                      {registrationLoading[event.id] ? 'Processing...' : 'Confirm'}
-                                    </button>
-                                    <button
-                                      onClick={() => handleCancelRegistration(event.id)}
-                                      disabled={registrationLoading[event.id]}
-                                      className="px-6 py-2.5 bg-slate-300 text-white rounded text-xs font-medium hover:bg-slate-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                      Cancel
-                                    </button>
+                          <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex gap-4">
+                              {/* Event Image */}
+                              {event.imageUrl ? (
+                                <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden">
+                                  <Image
+                                    src={event.imageUrl}
+                                    alt={event.title}
+                                    fill
+                                    className="object-cover"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="relative w-24 h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-[#387d8a]/10 to-[#2c5f6a]/10 flex items-center justify-center">
+                                  <svg className="w-8 h-8 text-[#387d8a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                              )}
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="text-xl font-bold text-[#387d8a] mb-1 line-clamp-1">{event.title}</h4>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                      📅 {formattedDate} | ⏰ {event.time} | 📍 {event.location}
+                                    </p>
+                                    <span className="inline-block mb-2 px-2 py-1 text-xs font-medium bg-[#387d8a]/10 text-[#387d8a] rounded-full">
+                                      {event.category}
+                                    </span>
+                                    <p className="text-sm text-gray-500 mb-2">
+                                      👥 {event.currentParticipants || 0}/{event.maxParticipants || '∞'} participants
+                                    </p>
+                                    {event.description && (
+                                      <p className="text-base text-gray-700 whitespace-pre-wrap line-clamp-2">{event.description}</p>
+                                    )}
                                   </div>
-                                )}
+                                  <div className="ml-4 flex-shrink-0">
+                                    {userRegistrations[event.id] ? (
+                                      <span className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-semibold shadow-md text-sm">
+                                        Registered ✓
+                                      </span>
+                                    ) : !registrationConfirm[event.id] ? (
+                                      <button
+                                        onClick={() => handleRegisterClick(event.id)}
+                                        disabled={registrationLoading[event.id]}
+                                        className="px-6 py-2.5 bg-[#387d8a] text-white rounded-lg font-semibold hover:bg-[#2c5f6a] transition-colors shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        {registrationLoading[event.id] ? 'Processing...' : 'Register'}
+                                      </button>
+                                    ) : (
+                                      <div className="flex flex-col space-y-2">
+                                        <button
+                                          onClick={() => handleConfirmRegistration(event)}
+                                          disabled={registrationLoading[event.id]}
+                                          className="px-6 py-2.5 bg-[#047d8a] hover:bg-[#036570] text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          {registrationLoading[event.id] ? 'Processing...' : 'Confirm'}
+                                        </button>
+                                        <button
+                                          onClick={() => handleCancelRegistration(event.id)}
+                                          disabled={registrationLoading[event.id]}
+                                          className="px-6 py-2.5 bg-slate-300 text-white rounded text-xs font-medium hover:bg-slate-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
